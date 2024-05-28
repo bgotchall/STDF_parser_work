@@ -2,16 +2,18 @@ from pystdf.IO import Parser
 from pystdf.V4 import pir, ptr, prr
 import pandas
 import numpy as np
-# import matplotlib.pyplot as plt
-# plt.rc('figure', figsize=(12,8))
+import matplotlib.pyplot as plt
+plt.rc('figure', figsize=(12,8))
+
+#Note for Bob.  I basically abandonded this because the command line stdf2text works for all I need.
 
 
 
 
+#help(ptr)
+print("hi")
 
-help(ptr)
-
-
+ 
 class DataFrameSink(object):
     def __init__(self):
         self.index_tuples = []
@@ -56,7 +58,7 @@ class DataFrameSink(object):
         self.limits.index.name = 'test'
 
 
-
+print("hello")
 
 f = open('demofile.stdf', 'rb')
 parser = Parser(inp=f)

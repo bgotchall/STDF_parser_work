@@ -1,0 +1,49 @@
+Datalog report
+Wed May 15 09:32:42 2024
+
+                      Lot:  P6BB18-LB0-50D
+                   Tester:  austin-CTH
+                  Program:  SDC300ZXX4FR100.tf
+                      Rev:  R100
+                   Device:  SDC300
+          Device Revision:  ZEUS
+                    Sites:  1,2,3,4
+             Package Type:  SDC300
+                 Operator:  Bavani
+                Test Code:  FT
+         Test Temperature:  25C
+        Handler or Prober:  handtest (Offline)
+         Smartest Version:  7.5.4.5
+    Smartest Release Date:  Wed, 31 Mar 2021 11:41:04 +0200
+           Executive Name:  TCCT
+        Executive Version:  1.10.1
+   Executive Release Date:  20240124
+
+
+Site1 PartID: "P1"; Site2 PartID: "P2"; Site3 PartID: "P3"; Site4 PartID: "P4"
+
+SDC300ZXX4FR100
+ZEUS_FT-321-Y23
+
+Number     Test Name                                                             Low           Measured               High       Site(P/F)
+900000000  Board_ID                                                            0.500     <=      2.0000      <       3.000       Site:1
+
+ZEUS_FT-321-Y23
+
+900000000  Board_ID                                                            0.500     <=      2.0000      <       3.000       Site:2
+
+ZEUS_FT-321-Y23
+
+900000000  Board_ID                                                            0.500     <=      2.0000      <       3.000       Site:3
+
+ZEUS_FT-321-Y23
+
+900000000  Board_ID                                                            0.500     <=      2.0000      <       3.000       Site:4
+900000001  DPS_ForceSense                                                      0.000     NA      0.0000     NA       0.000       Site:1
+900000001  DPS_ForceSense                                                      0.000     NA      0.0000     NA       0.000       Site:1
+900000001  DPS_ForceSense                                                      0.000     NA      0.0000     NA       0.000       Site:1
+900000001  DPS_ForceSense                                                      0.000     NA      0.0000     NA       0.000       Site:1
+900000001  DPS_ForceSense                                                      0.000     NA      0.0000     NA       0.000       Site:1
+900000001  DPS_ForceSense                                                      0.000     NA      0.0000     NA       0.000       Site:1
+900000001  DPS_ForceSense                                                      0.000     NA      0.0000     NA       0.000       Site:1
+900000001  DPS_ForceSense                                                      0.000     NA      0.0000     NA       0.000       Site:2
