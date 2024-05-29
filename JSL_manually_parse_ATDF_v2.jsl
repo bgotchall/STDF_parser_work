@@ -129,6 +129,8 @@ if(0,
     //Rename data table: SS_D5_115C → Source_atdf
     Data Table( dt ) << Set Name( "Source_atdf" );
 
+///////////////////////////////////////////////////////////////////////////////////
+
     step_name = "Add helper data";
     Show(step_name);
     //Add helper data
@@ -192,7 +194,7 @@ if(0,
     step_name = "Change column name: Column 2 → stdf_index";
     //Change column name: Column 2 → stdf_index
     Data Table( "Source_atdf" ):Column 2 << Set Name( "stdf_record_index" );
-
+///////////////////////////////////////////////////////////////////////////////////
     step_name = "Process FAR";
     //Process FAR
 
@@ -203,7 +205,7 @@ if(0,
     step_name = "Delete selected rows";
     //Delete selected rows
     Data Table( "Source_atdf" ) << Select where( :Record_type == "FAR" ) << Delete Rows;
-
+///////////////////////////////////////////////////////////////////////////////////
     step_name = "Process ATR";
     //Process ATR
 
@@ -249,7 +251,7 @@ if(0,
     	:c000036, :c000037, :c000038, :c000039
     );
 
-    step_name = "New column: Column 3";
+      step_name = "New column: Column 3";
     //New column: Column 3
     Data Table( "ATR_table" ) << New Column( "Column 3",
     	Numeric,
@@ -273,15 +275,54 @@ if(0,
     	MDYHMS( :MOD_TIM + 2082844800 )
     );
 
+    step_name = "Wait for formula to evaluate";
+    //Wait for formula to evaluate
+    Data Table( "ATR_table" ) << RunFormulas;
+
     step_name = "Change column display width: CMD_LINE";
     //Change column display width: CMD_LINE
     Data Table( "ATR_table" ):CMD_LINE << Set Display Width( 742 );
 
-    step_name = "Change column info: mod_time_2";
-    //Change column info: mod_time_2
-    Data Table( "ATR_table" ):mod_time_2 << Set Data Type( Numeric ) <<
-    Set Field Width( 12 );
+    step_name = "New column: Column 2";
+    //New column: Column 2
+    Data Table( "ATR_table" ) << New Column( "Column 2",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 2}, after( :DATA_FILE ) );
 
+    step_name = "Change column name: Column 2 → Record_date";
+    //Change column name: Column 2 → Record_date
+    Data Table( "ATR_table" ):Column 2 << Set Name( "Record_date" );
+
+    step_name = "Wait for formula to evaluate";
+    //Wait for formula to evaluate
+    Data Table( "ATR_table" ) << RunFormulas;
+
+    step_name = "Change column formula: Record_date";
+    //Change column formula: Record_date
+    Data Table( "ATR_table" ):Record_date << Set Formula( Today() );
+
+    step_name = "Wait for formula to evaluate";
+    //Wait for formula to evaluate
+    Data Table( "ATR_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: Record_date";
+    //Delete column formula: Record_date
+    Data Table( "ATR_table" ):Record_date << Delete Formula;
+
+    step_name = "Delete column formula: mod_time_2";
+    //Delete column formula: mod_time_2
+    Data Table( "ATR_table" ):mod_time_2 << Delete Formula;
+
+    step_name = "Change column info: Record_date";
+    //Change column info: Record_date
+    Data Table( "ATR_table" ):Record_date << Input Format( "m/d/y h:m:s", 0 ) <<
+    Format( "m/d/y h:m:s", 23, 0 );
+    
+    
+///////////////////////////////////////////////////////////////////////////////////
     step_name = "Add a unversal date code for records";
     //Add a unversal date code for records
 
@@ -2063,14 +2104,9 @@ if(0,
     Wait(0);
     
     Data Table( "superset_table" ) << Save(  super_file_name   );
-
-    step_name = "Clear row states";
-    //Clear row states
-    Data Table( "PTR_table" ) << Clear Row States;
-
-    step_name = "Clear row states";
-    //Clear row states
-    Data Table( "PTR_table" ) << Clear Row States;
+//Close 
+	this_name= Just_file_name_no_suffix || "_super";
+    Close( Data Table( this_name ), NoSave );
 
     step_name = "Improve the PTR table by adding in the DTR, PIR, PTR records";
     //Improve the PTR table by adding in the DTR, PIR, PTR records
@@ -2104,10 +2140,72 @@ if(0,
     Wait(0);
     
     Data Table( "concat_out" ) << Save(    	ptr_plus_file_name    );
+    this_name= Just_file_name_no_suffix || "_PTR_plus";
+    Close( Data Table( this_name ), NoSave );
 
     step_name = "Close Data Table: PTR_table";
     //Close Data Table: PTR_table
     Close( Data Table( "PTR_table" ), NoSave );
+    
+    step_name = "Close Data Table: DTR_table";
+    //Close Data Table: DTR_table
+    Close( Data Table( "DTR_table" ), NoSave );
+
+    step_name = "Close Data Table: PIR_table";
+    //Close Data Table: PIR_table
+    Close( Data Table( "PIR_table" ), NoSave );
+
+    step_name = "Close Data Table: PCR_table";
+    //Close Data Table: PCR_table
+    Close( Data Table( "PCR_table" ), NoSave );
+
+    step_name = "Close Data Table: HBR_table";
+    //Close Data Table: HBR_table
+    Close( Data Table( "HBR_table" ), NoSave );
+
+    step_name = "Close Data Table: MPR_table";
+    //Close Data Table: MPR_table
+    Close( Data Table( "MPR_table" ), NoSave );
+
+    step_name = "Close Data Table: SDR_table";
+    //Close Data Table: SDR_table
+    Close( Data Table( "SDR_table" ), NoSave );
+
+    step_name = "Close Data Table: MIR_table";
+    //Close Data Table: MIR_table
+    Close( Data Table( "MIR_table" ), NoSave );
+    
+    
+    step_name = "Close Data Table: PRR_table";
+    //Close Data Table: PRR_table
+    Close( Data Table( "PRR_table" ), NoSave );
+
+    step_name = "Close Data Table: MRR_table";
+    //Close Data Table: MRR_table
+    Close( Data Table( "MRR_table" ), NoSave );
+
+    step_name = "Close Data Table: SBR_table";
+    //Close Data Table: SBR_table
+    Close( Data Table( "SBR_table" ), NoSave );
+
+    step_name = "Close Data Table: TSR_table";
+    //Close Data Table: TSR_table
+    Close( Data Table( "TSR_table" ), NoSave );
+
+    step_name = "Close Data Table: PMR_table";
+    //Close Data Table: PMR_table
+    Close( Data Table( "PMR_table" ), NoSave );
+
+    step_name = "Close Data Table: ATR_table";
+    //Close Data Table: ATR_table
+    Close( Data Table( "ATR_table" ), NoSave );
+    
+    
+    
+    
+    
+    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////    
 );
 
 // open a simple text file, possibly created by another script on the fly, to get a list of files to operate on:
@@ -2115,6 +2213,8 @@ file_list_table = Open( "lot_list_to_process_temp.csv", text );
 Wait(0);
 
 For Each Row(file_list_table,
+	my_row=Row();
+	Show (my_row);
 	this_file_name= :File_name[Row()];
 	Show ("this filename read is ", this_file_name);			//write to debugger?
 	WF_manually_parse_ATDF_v2(this_file_name);
