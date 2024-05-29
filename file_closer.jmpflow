@@ -1,0 +1,137 @@
+Workflow(
+	Names Default To Here( 1 ),
+	Run_On_Open( 0 ),
+	Allow_Data_Prompting( 1 ),
+	References,
+	Export_Configs( Config( Paths, Presentation_Mode( 0 ), Locked_Mode( 0 ) ) ),
+	Steps(
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: superset_table" ),
+			ID( "3799823828" ),
+			Time_Updated( 3799842385 ),
+			JSL( "\[Close( Data Table( "superset_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: DTR_table" ),
+			ID( "3799823855" ),
+			Time_Updated( 3799842391 ),
+			JSL( "\[Close( Data Table( "DTR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: PIR_table" ),
+			ID( "3799823882" ),
+			Time_Updated( 3799842393 ),
+			JSL( "\[Close( Data Table( "PIR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: PCR_table" ),
+			ID( "3799823909" ),
+			Time_Updated( 3799842396 ),
+			JSL( "\[Close( Data Table( "PCR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: HBR_table" ),
+			ID( "3799823936" ),
+			Time_Updated( 3799842398 ),
+			JSL( "\[Close( Data Table( "HBR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: MPR_table" ),
+			ID( "3799823963" ),
+			Time_Updated( 3799842401 ),
+			JSL( "\[Close( Data Table( "MPR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: SDR_table" ),
+			ID( "3799823990" ),
+			Time_Updated( 3799842403 ),
+			JSL( "\[Close( Data Table( "SDR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: MIR_table" ),
+			ID( "3799824017" ),
+			Time_Updated( 3799842408 ),
+			JSL( "\[Close( Data Table( "MIR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: PRR_table" ),
+			ID( "3799824044" ),
+			Time_Updated( 3799842412 ),
+			JSL( "\[Close( Data Table( "PRR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: MRR_table" ),
+			ID( "3799824071" ),
+			Time_Updated( 3799842416 ),
+			JSL( "\[Close( Data Table( "MRR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: SBR_table" ),
+			ID( "3799824098" ),
+			Time_Updated( 3799842419 ),
+			JSL( "\[Close( Data Table( "SBR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: TSR_table" ),
+			ID( "3799824125" ),
+			Time_Updated( 3799842421 ),
+			JSL( "\[Close( Data Table( "TSR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: PMR_table" ),
+			ID( "3799824152" ),
+			Time_Updated( 3799842424 ),
+			JSL( "\[Close( Data Table( "PMR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: ATR_table" ),
+			ID( "3799824179" ),
+			Time_Updated( 3799842427 ),
+			JSL( "\[Close( Data Table( "ATR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: PTR_table" ),
+			ID( "3799824206" ),
+			Time_Updated( 3799842430 ),
+			JSL( "\[Close( Data Table( "PTR_table" ), NoSave )]\" ),
+			Event_Handlers
+		),
+		Workflow_Step(
+			Type( "JSL" ),
+			Display_Name( "Close Data Table: lot_list_to_process_temp" ),
+			ID( "3799824233" ),
+			Time_Updated( 3799842433 ),
+			JSL( "\[Close( Data Table( "lot_list_to_process_temp" ), NoSave )]\" ),
+			Event_Handlers
+		)
+	)
+)
