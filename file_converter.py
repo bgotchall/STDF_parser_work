@@ -76,18 +76,37 @@ if (0):     #this all works, but is limited.
         sys.stdout.close
 
 if(1):
-    file_list= glob.glob("./stdf_to_process/*.stdf")
+    file_list= glob.glob("../../FT_datalogs/stdf_to_process/*.stdf.gz")
 
     for  this_file in file_list:
         sys.stdout= orig_stdout
-        out_file=this_file.replace("stdf","atdf")
+        in_file_unzip=this_file.replace(".gz","")           #the name of the .stdf file without the .gz
+        out_file=in_file_unzip.replace("stdf","atdf")       #the name of the .atdf target file
         print("Processing ",this_file, " into ", out_file)
         
-        cmd = ['stdf2text', this_file ]                     #this is just a list of things that go in the "arg" part of subprocess.run
-        result=subprocess.run(cmd,capture_output=True, text=True)
-        with open(out_file, 'w') as sys.stdout:
-            print(result.stdout)
-        sys.stdout.close
+        if(1):
+            #unzip the stdf
+            
+            print("unzipping ",this_file)
+            cmd = ['gzip','-d' , this_file ]                     #this is just a list of things that go in the "arg" part of subprocess.run
+            subprocess.run(cmd)
+
+            cmd = ['stdf2text', in_file_unzip ]                     
+            result=subprocess.run(cmd,capture_output=True, text=True)
+            with open(out_file, 'w') as sys.stdout:
+                print(result.stdout)
+            sys.stdout.close
+
+            #now attempt to zip the atdf:
+            sys.stdout= orig_stdout
+            print("zipping ",out_file)
+            cmd = ['gzip', out_file ]                    
+            subprocess.run(cmd)
+
+            #re-zip the input .stdf file:
+            print("zipping ",in_file_unzip)
+            cmd = ['gzip', in_file_unzip ]                     
+            subprocess.run(cmd)
 
 ###################################################################
 #wrap up and exit:
