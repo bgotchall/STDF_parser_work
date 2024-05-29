@@ -1,0 +1,1983 @@
+﻿//   eventually add the //! to the first line to have it execute upon opening, and add a "close()" at the end.
+//////////////////////////////////////////////////////////////////////////////////////////////
+// This is from a partially written WF script, "WF_manually_parse_ATDF.WF" to see if converting to JSL
+// is practical.  because dealing with the damn references is a pain.
+// Note this works!  The key is to add wait(0) as needed to force it to finish what it was doing.
+// this script isn't complete, but it shows the rudiments of how it could work.  I should force it to do basic logging and file I/O to show this is viable
+
+Names Default To Here( 1 );
+
+
+WF_manually_parse_ATDF_v2=function({}, 
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_atdf" ) << Clear Row States;
+
+    step_name = "Open zip file";
+    //Open zip file
+    zipdt = Open(
+    	"C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\FT_Datalogs\atdf_to_process\FF_D1_0C.atdf.gz",
+    	GZIP
+    );
+    zip_member_list = zipdt << dir;
+    For( i = 1, i <= N Items( zip_member_list ), i++,
+    	zip_file = zipdt << read( zip_member_list[i], Format( blob ) );
+    	dt = Open( zip_file, text );
+    );;
+
+    step_name = "Rename data table: SS_D5_115C → Source_atdf";
+    //Rename data table: SS_D5_115C → Source_atdf
+    Data Table( "datalog_file_from_stdf2text.atdf" ) << Set Name( "Source_atdf" );
+
+    step_name = "Add helper data";
+    //Add helper data
+
+    step_name = "Change column name: c000001 → Record_type";
+    //Change column name: c000001 → Record_type
+    Data Table( "Source_atdf" ):c000001 << Set Name( "Record_type" );
+
+    step_name = "New column: Column 1";
+    //New column: Column 1
+    Data Table( "Source_atdf" ) << New Column( "Column 1",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 1}, To First );
+
+    step_name = "Change column info: DATA_FILE";
+    //Change column info: DATA_FILE
+    Data Table( "Source_atdf" ):Column 1 << Set Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "DATA_FILE" );
+
+    step_name = "Recode column: DATA_FILE";
+    //Recode column: DATA_FILE
+    Local( {dt},
+    	dt = Data Table( "Source_atdf" );
+    	dt << Begin Data Update;
+    	For Each Row(
+    		dt,
+    		dt:DATA_FILE[] = Map Value(
+    			dt:DATA_FILE,
+    			{"", "P6BB18-50D-RUN1_20240521133931.stdf"},
+    			Unmatched( dt:DATA_FILE )
+    		)
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "New column: Column 2";
+    //New column: Column 2
+    Data Table( "Source_atdf" ) << New Column( "Column 2",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 2}, after( :DATA_FILE ) );
+
+    step_name = "Change column formula: stdf_record_index";
+    //Change column formula: stdf_record_index
+    Data Table( "Source_atdf" ):Column 2 << Set Formula( Row() );
+
+    step_name = "Wait for formula to evaluate";
+    //Wait for formula to evaluate
+    Data Table( "Source_atdf" ) << RunFormulas;
+
+    step_name = "Delete column formula: stdf_record_index";
+    //Delete column formula: stdf_record_index
+    Data Table( "Source_atdf" ):Column 2 << Delete Formula;
+
+    step_name = "Change column name: Column 2 → stdf_index";
+    //Change column name: Column 2 → stdf_index
+    Data Table( "Source_atdf" ):Column 2 << Set Name( "stdf_record_index" );
+
+    step_name = "Process FAR";
+    //Process FAR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "FAR" );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "FAR" ) << Delete Rows;
+
+    step_name = "Process ATR";
+    //Process ATR
+
+    step_name = "Change column display widths";
+    //Change column display widths
+    Local( {dt},
+    	dt = Data Table( "Source_atdf" );
+    	dt:c000003 << Set Display Width( 381 );
+    );
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "ATR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "ATR" ) <<
+    Subset(
+    	Output Table( "ATR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "ATR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → MOD_TIM";
+    //Change column name: c000002 → MOD_TIM
+    Data Table( "ATR_table" ):c000002 << Set Name( "MOD_TIM" );
+
+    step_name = "Change column name: c000003 → CMD_LINE";
+    //Change column name: c000003 → CMD_LINE
+    Data Table( "ATR_table" ):c000003 << Set Name( "CMD_LINE" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "ATR_table" ) << Delete Columns(
+    	:c000004, :c000005, :c000006, :c000007, :c000008, :c000009, :c000010, :c000011,
+    	:c000012, :c000013, :c000014, :c000015, :c000016, :c000017, :c000018, :c000019,
+    	:c000020, :c000021, :c000022, :c000023, :c000024, :c000025, :c000026, :c000027,
+    	:c000028, :c000029, :c000030, :c000031, :c000032, :c000033, :c000034, :c000035,
+    	:c000036, :c000037, :c000038, :c000039
+    );
+
+    step_name = "New column: Column 3";
+    //New column: Column 3
+    Data Table( "ATR_table" ) << New Column( "Column 3",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 3}, after( :MOD_TIM ) );
+
+    step_name = "Change column name: Column 3 → mod_time_2";
+    //Change column name: Column 3 → mod_time_2
+    Data Table( "ATR_table" ):Column 3 << Set Name( "mod_time_2" );
+
+    step_name = "Change column info: MOD_TIM";
+    //Change column info: MOD_TIM
+    Data Table( "ATR_table" ):MOD_TIM << Set Data Type( Numeric ) <<
+    Set Field Width( 12 );
+
+    step_name = "Change column formula: mod_time_2";
+    //Change column formula: mod_time_2
+    Data Table( "ATR_table" ):mod_time_2 << Set Formula(
+    	MDYHMS( :MOD_TIM + 2082844800 )
+    );
+
+    step_name = "Change column display width: CMD_LINE";
+    //Change column display width: CMD_LINE
+    Data Table( "ATR_table" ):CMD_LINE << Set Display Width( 742 );
+
+    step_name = "Change column info: mod_time_2";
+    //Change column info: mod_time_2
+    Data Table( "ATR_table" ):mod_time_2 << Set Data Type( Numeric ) <<
+    Set Field Width( 12 );
+
+    step_name = "Add a unversal date code for records";
+    //Add a unversal date code for records
+
+    step_name = "Join data tables";
+    //Join data tables
+    Data Table( "Source_atdf" ) << Join(
+    	With( Data Table( "ATR_table" ) ),
+    	Merge Same Name Columns,
+    	Match Flag( 0 ),
+    	Select(
+    		:DATA_FILE, :stdf_record_index, :Record_type, :c000002, :c000003, :c000004,
+    		:c000005, :c000006, :c000007, :c000008, :c000009, :c000010, :c000011,
+    		:c000012, :c000013, :c000014, :c000015, :c000016, :c000017, :c000018,
+    		:c000019, :c000020, :c000021, :c000022, :c000023, :c000024, :c000025,
+    		:c000026, :c000027, :c000028, :c000029, :c000030, :c000031, :c000032,
+    		:c000033, :c000034, :c000035, :c000036, :c000037, :c000038, :c000039
+    	),
+    	SelectWith( :mod_time_2 ),
+    	By Matching Columns( :DATA_FILE = :DATA_FILE ),
+    	Drop multiples( 0, 0 ),
+    	Include Nonmatches( 0, 0 ),
+    	Preserve main table order( 1 ),
+    	Output Table( "Source_out" )
+    );
+
+    step_name = "Move selected column: mod_time_2";
+    //Move selected column: mod_time_2
+    Data Table( "Source_out" ) << Move Selected Columns(
+    	{:mod_time_2},
+    	after( :DATA_FILE )
+    );
+
+    step_name = "Change column name: mod_time_2 → Mod_time";
+    //Change column name: mod_time_2 → Mod_time
+    Data Table( "Source_out" ):mod_time_2 << Set Name( "Mod_time" );
+
+    step_name = "Close Data Table: Source_atdf";
+    //Close Data Table: Source_atdf
+    Close( Data Table( "Source_atdf" ), NoSave );
+
+    step_name = "Rename data table: Source_out → Source_atdf";
+    //Rename data table: Source_out → Source_atdf
+    Data Table( "Source_out" ) << Set Name( "Source_atdf" );
+
+    step_name = "Process MIR";
+    //Process MIR
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_atdf" ) << Clear Row States;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "MIR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "MIR" ) <<
+    Subset(
+    	Output Table( "MIR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "MIR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → setup_t";
+    //Change column name: c000002 → setup_t
+    Data Table( "MIR_table" ):c000002 << Set Name( "setup_t" );
+
+    step_name = "Change column name: c000003 → start_t";
+    //Change column name: c000003 → start_t
+    Data Table( "MIR_table" ):c000003 << Set Name( "start_t" );
+
+    step_name = "Change column name: c000004 → stat_num";
+    //Change column name: c000004 → stat_num
+    Data Table( "MIR_table" ):c000004 << Set Name( "stat_num" );
+
+    step_name = "Change column name: c000005 → mode_cod";
+    //Change column name: c000005 → mode_cod
+    Data Table( "MIR_table" ):c000005 << Set Name( "mode_cod" );
+
+    step_name = "Change column name: c000006 → rtst_cod";
+    //Change column name: c000006 → rtst_cod
+    Data Table( "MIR_table" ):c000006 << Set Name( "rtst_cod" );
+
+    step_name = "Change column name: c000007 → prot_cod";
+    //Change column name: c000007 → prot_cod
+    Data Table( "MIR_table" ):c000007 << Set Name( "prot_cod" );
+
+    step_name = "Change column name: c000008 → burn_tim";
+    //Change column name: c000008 → burn_tim
+    Data Table( "MIR_table" ):c000008 << Set Name( "burn_tim" );
+
+    step_name = "Change column name: c000009 → cmod_cod";
+    //Change column name: c000009 → cmod_cod
+    Data Table( "MIR_table" ):c000009 << Set Name( "cmod_cod" );
+
+    step_name = "Change column name: c000010 → lot_id";
+    //Change column name: c000010 → lot_id
+    Data Table( "MIR_table" ):c000010 << Set Name( "lot_id" );
+
+    step_name = "Change column display width: start_t";
+    //Change column display width: start_t
+    Data Table( "MIR_table" ):start_t << Set Display Width( 184 );
+
+    step_name = "Change column display width: burn_tim";
+    //Change column display width: burn_tim
+    Data Table( "MIR_table" ):burn_tim << Set Display Width( 54 );
+
+    step_name = "Change column display width: cmod_cod";
+    //Change column display width: cmod_cod
+    Data Table( "MIR_table" ):cmod_cod << Set Display Width( 88 );
+
+    step_name = "Change column display width: c000011";
+    //Change column display width: c000011
+    Data Table( "MIR_table" ):c000011 << Set Display Width( 137 );
+
+    step_name = "Change column display width: c000011";
+    //Change column display width: c000011
+    Data Table( "MIR_table" ):c000011 << Set Display Width( 99 );
+
+    step_name = "Change column name: c000011 → part_typ";
+    //Change column name: c000011 → part_typ
+    Data Table( "MIR_table" ):c000011 << Set Name( "part_typ" );
+
+    step_name = "Change column name: c000012 → node_nam";
+    //Change column name: c000012 → node_nam
+    Data Table( "MIR_table" ):c000012 << Set Name( "node_nam" );
+
+    step_name = "Change column name: c000013 → tstr_typ";
+    //Change column name: c000013 → tstr_typ
+    Data Table( "MIR_table" ):c000013 << Set Name( "tstr_typ" );
+
+    step_name = "Change column name: c000014 → job_nam";
+    //Change column name: c000014 → job_nam
+    Data Table( "MIR_table" ):c000014 << Set Name( "job_nam" );
+
+    step_name = "Change column name: c000015 → job_rev";
+    //Change column name: c000015 → job_rev
+    Data Table( "MIR_table" ):c000015 << Set Name( "job_rev" );
+
+    step_name = "Change column name: c000016 → sblot_id";
+    //Change column name: c000016 → sblot_id
+    Data Table( "MIR_table" ):c000016 << Set Name( "sblot_id" );
+
+    step_name = "Change column name: c000017 → oper_nam";
+    //Change column name: c000017 → oper_nam
+    Data Table( "MIR_table" ):c000017 << Set Name( "oper_nam" );
+
+    step_name = "Change column name: c000018 → exec_typ";
+    //Change column name: c000018 → exec_typ
+    Data Table( "MIR_table" ):c000018 << Set Name( "exec_typ" );
+
+    step_name = "Change column name: c000019 → exec_ver";
+    //Change column name: c000019 → exec_ver
+    Data Table( "MIR_table" ):c000019 << Set Name( "exec_ver" );
+
+    step_name = "Change column name: c000020 → test_cod";
+    //Change column name: c000020 → test_cod
+    Data Table( "MIR_table" ):c000020 << Set Name( "test_cod" );
+
+    step_name = "Change column name: c000021 → tst_temp";
+    //Change column name: c000021 → tst_temp
+    Data Table( "MIR_table" ):c000021 << Set Name( "tst_temp" );
+
+    step_name = "Change column name: c000022 → user_txt";
+    //Change column name: c000022 → user_txt
+    Data Table( "MIR_table" ):c000022 << Set Name( "user_txt" );
+
+    step_name = "Change column name: c000023 → aux_file";
+    //Change column name: c000023 → aux_file
+    Data Table( "MIR_table" ):c000023 << Set Name( "aux_file" );
+
+    step_name = "Change column name: c000024 → pkg_typ";
+    //Change column name: c000024 → pkg_typ
+    Data Table( "MIR_table" ):c000024 << Set Name( "pkg_typ" );
+
+    step_name = "Change column name: c000025 → family_id";
+    //Change column name: c000025 → family_id
+    Data Table( "MIR_table" ):c000025 << Set Name( "family_id" );
+
+    step_name = "Change column name: c000026 → date_cod";
+    //Change column name: c000026 → date_cod
+    Data Table( "MIR_table" ):c000026 << Set Name( "date_cod" );
+
+    step_name = "Change column name: c000027 → facil_id";
+    //Change column name: c000027 → facil_id
+    Data Table( "MIR_table" ):c000027 << Set Name( "facil_id" );
+
+    step_name = "Change column name: c000028 → floor_id";
+    //Change column name: c000028 → floor_id
+    Data Table( "MIR_table" ):c000028 << Set Name( "floor_id" );
+
+    step_name = "Change column name: c000029 → proc_id";
+    //Change column name: c000029 → proc_id
+    Data Table( "MIR_table" ):c000029 << Set Name( "proc_id" );
+
+    step_name = "Change column name: c000030 → oper_frq";
+    //Change column name: c000030 → oper_frq
+    Data Table( "MIR_table" ):c000030 << Set Name( "oper_frq" );
+
+    step_name = "Change column name: c000031 → spec_nam";
+    //Change column name: c000031 → spec_nam
+    Data Table( "MIR_table" ):c000031 << Set Name( "spec_nam" );
+
+    step_name = "Change column name: c000032 → spec_ver";
+    //Change column name: c000032 → spec_ver
+    Data Table( "MIR_table" ):c000032 << Set Name( "spec_ver" );
+
+    step_name = "Change column name: c000033 → flow_id";
+    //Change column name: c000033 → flow_id
+    Data Table( "MIR_table" ):c000033 << Set Name( "flow_id" );
+
+    step_name = "Change column name: c000034 → setup_id";
+    //Change column name: c000034 → setup_id
+    Data Table( "MIR_table" ):c000034 << Set Name( "setup_id" );
+
+    step_name = "Change column name: c000035 → dsgn_rev";
+    //Change column name: c000035 → dsgn_rev
+    Data Table( "MIR_table" ):c000035 << Set Name( "dsgn_rev" );
+
+    step_name = "Change column name: c000036 → eng_id";
+    //Change column name: c000036 → eng_id
+    Data Table( "MIR_table" ):c000036 << Set Name( "eng_id" );
+
+    step_name = "Change column name: c000037 → rom_cod";
+    //Change column name: c000037 → rom_cod
+    Data Table( "MIR_table" ):c000037 << Set Name( "rom_cod" );
+
+    step_name = "Change column name: c000038 → serl_num";
+    //Change column name: c000038 → serl_num
+    Data Table( "MIR_table" ):c000038 << Set Name( "serl_num" );
+
+    step_name = "Change column name: c000039 → supr_nam";
+    //Change column name: c000039 → supr_nam
+    Data Table( "MIR_table" ):c000039 << Set Name( "supr_nam" );
+
+    step_name = "Standardize column attributes";
+    //Standardize column attributes
+    Local( {old dt = Current Data Table()},
+    	Current Data Table( Data Table( "MIR_table" ) );
+    	For Each( {col, index},
+    		{:aux_file, :facil_id, :floor_id, :proc_id, :oper_frq, :spec_nam, :spec_ver,
+    		:flow_id, :setup_id, :eng_id, :rom_cod, :serl_num, :supr_nam},
+    		col << Set Data Type( Character( 7 ) ) << Set Modeling Type( "Nominal" )
+    	);
+    	Current Data Table( old dt );
+    );
+
+    step_name = "Change column display width: job_nam";
+    //Change column display width: job_nam
+    Data Table( "MIR_table" ):job_nam << Set Display Width( 83 );
+
+    step_name = "Change column display width: job_rev";
+    //Change column display width: job_rev
+    Data Table( "MIR_table" ):job_rev << Set Display Width( 68 );
+
+    step_name = "Change column display width: sblot_id";
+    //Change column display width: sblot_id
+    Data Table( "MIR_table" ):sblot_id << Set Display Width( 116 );
+
+    step_name = "Change column display width: part_typ";
+    //Change column display width: part_typ
+    Data Table( "MIR_table" ):part_typ << Set Display Width( 81 );
+
+    step_name = "Change column display width: prot_cod";
+    //Change column display width: prot_cod
+    Data Table( "MIR_table" ):prot_cod << Set Display Width( 67 );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_atdf" ) << Clear Row States;
+
+    step_name = "Join to the lot list metadata";
+    //Join to the lot list metadata
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_atdf" ) << Clear Row States;
+
+    step_name = "Import Excel file: lot_list.xlsx";
+    //Import Excel file: lot_list.xlsx
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/lot_list.xlsx",
+    	Worksheets( "lot_list" ),
+    	Use for all sheets( 1 ),
+    	Concatenate Worksheets( 0 ),
+    	Create Concatenation Column( 0 ),
+    	Worksheet Settings(
+    		1,
+    		Has Column Headers( 1 ),
+    		Number of Rows in Headers( 1 ),
+    		Headers Start on Row( 1 ),
+    		Data Starts on Row( 2 ),
+    		Data Starts on Column( 1 ),
+    		Data Ends on Row( 0 ),
+    		Data Ends on Column( 0 ),
+    		Replicated Spanned Rows( 1 ),
+    		Replicated Spanned Headers( 0 ),
+    		Suppress Hidden Rows( 1 ),
+    		Suppress Hidden Columns( 1 ),
+    		Suppress Empty Columns( 1 ),
+    		Treat as Hierarchy( 0 ),
+    		Multiple Series Stack( 0 ),
+    		Import Cell Colors( 0 ),
+    		Limit Column Detect( 0 ),
+    		Column Separator String( "-" )
+    	)
+    );
+
+    step_name = "Change column modeling type: Probe_wafer";
+    //Change column modeling type: Probe_wafer
+    Data Table( "lot_list" ):Probe_wafer << Set Modeling Type( "Nominal" );
+
+    step_name = "Change column modeling type: Probe_wafer";
+    //Change column modeling type: Probe_wafer
+    Data Table( "lot_list" ):Probe_wafer << Set Modeling Type( "Ordinal" );
+
+    step_name = "Join data tables";
+    //Join data tables
+    Data Table( "Source_atdf" ) << Join(
+    	With( Data Table( "lot_list" ) ),
+    	By Matching Columns( :DATA_FILE = :File_name ),
+    	Drop multiples( 0, 1 ),
+    	Include Nonmatches( 1, 0 ),
+    	Preserve main table order( 1 ),
+    	Output Table( "join_out" )
+    );
+
+    step_name = "Move selected columns";
+    //Move selected columns
+    Data Table( "join_out" ) << Move Selected Columns(
+    	{:Lot_number, :Device, :Si_rev, :Tester_model, :Test_prog_rev, :File_name, :Date,
+    	:Process, :Temperature, :Probe_wafer, :Skew, :Lot_wafer, :Notes},
+    	after( :stdf_record_index )
+    );
+
+    step_name = "Set columns' header background colors";
+    //Set columns' header background colors
+    Data Table( "join_out" ):Lot_number << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Device << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Si_rev << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Tester_model <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Test_prog_rev <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Date << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Process << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Temperature << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Probe_wafer << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Skew << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Lot_wafer << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Notes << Set Header Background Color( "Light Green" );;
+
+    step_name = "Delete column: File_name";
+    //Delete column: File_name
+    Data Table( "join_out" ) << Delete Columns( :File_name );
+
+    step_name = "Delete column: Notes";
+    //Delete column: Notes
+    Data Table( "join_out" ) << Delete Columns( :Notes );
+
+    step_name = "Close Data Table: Source_atdf";
+    //Close Data Table: Source_atdf
+    Close( Data Table( "Source_atdf" ), NoSave );
+
+    step_name = "Rename data table: join_out → Source_atdf";
+    //Rename data table: join_out → Source_atdf
+    Data Table( "join_out" ) << Set Name( "Source_atdf" );
+
+    step_name = "Join data tables";
+    //Join data tables
+    Data Table( "MIR_table" ) << Join(
+    	With( Data Table( "lot_list" ) ),
+    	By Matching Columns( :DATA_FILE = :File_name ),
+    	Drop multiples( 0, 1 ),
+    	Include Nonmatches( 1, 0 ),
+    	Preserve main table order( 1 ),
+    	Output Table( "Join of MIR_table with lot_list" )
+    );
+
+    step_name = "Move selected columns";
+    //Move selected columns
+    Data Table( "Join of MIR_table with lot_list" ) <<
+    Move Selected Columns(
+    	{:Lot_number, :Device, :Si_rev, :Tester_model, :Test_prog_rev, :File_name, :Date,
+    	:Process, :Temperature, :Probe_wafer, :Skew, :Lot_wafer, :Notes},
+    	after( :Mod_time )
+    );
+
+    step_name = "Delete column: File_name";
+    //Delete column: File_name
+    Data Table( "Join of MIR_table with lot_list" ) << Delete Columns( :File_name );
+
+    step_name = "Delete column: Notes";
+    //Delete column: Notes
+    Data Table( "Join of MIR_table with lot_list" ) << Delete Columns( :Notes );
+
+    step_name = "Move selected column: stdf_record_index";
+    //Move selected column: stdf_record_index
+    Data Table( "Join of MIR_table with lot_list" ) <<
+    Move Selected Columns( {:stdf_record_index}, after( :Mod_time ) );
+
+    step_name = "Set columns' header background colors";
+    //Set columns' header background colors
+    Data Table( "Join of MIR_table with lot_list" ):Lot_number <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Device <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Si_rev <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Tester_model <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Test_prog_rev <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Date <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Process <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Temperature <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Probe_wafer <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Skew <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Lot_wafer <<
+    Set Header Background Color( "Light Green" );;
+
+    step_name = "Close Data Table: MIR_table";
+    //Close Data Table: MIR_table
+    Close( Data Table( "MIR_table" ), NoSave );
+
+    step_name = "Rename data table: Join of MIR_table with lot_list → MIR_table";
+    //Rename data table: Join of MIR_table with lot_list → MIR_table
+    Data Table( "Join of MIR_table with lot_list" ) << Set Name( "MIR_table" );
+
+    step_name = "Join data tables";
+    //Join data tables
+    Data Table( "ATR_table" ) << Join(
+    	With( Data Table( "lot_list" ) ),
+    	By Matching Columns( :DATA_FILE = :File_name ),
+    	Drop multiples( 0, 1 ),
+    	Include Nonmatches( 1, 0 ),
+    	Preserve main table order( 1 ),
+    	Output Table( "Join of ATR_table with lot_list" )
+    );
+
+    step_name = "Move selected columns";
+    //Move selected columns
+    Data Table( "Join of ATR_table with lot_list" ) <<
+    Move Selected Columns(
+    	{:Lot_number, :Device, :Si_rev, :Tester_model, :Test_prog_rev, :File_name, :Date,
+    	:Process, :Temperature, :Probe_wafer, :Skew, :Lot_wafer, :Notes},
+    	after( :stdf_record_index )
+    );
+
+    step_name = "Set columns' header background colors";
+    //Set columns' header background colors
+    Data Table( "Join of ATR_table with lot_list" ):Lot_number <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Device <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Si_rev <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Tester_model <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Test_prog_rev <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):File_name <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Date <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Process <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Temperature <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Probe_wafer <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Skew <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Lot_wafer <<
+    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Notes <<
+    Set Header Background Color( "Light Green" );;
+
+    step_name = "Delete column: Notes";
+    //Delete column: Notes
+    Data Table( "Join of ATR_table with lot_list" ) << Delete Columns( :Notes );
+
+    step_name = "Delete column: File_name";
+    //Delete column: File_name
+    Data Table( "Join of ATR_table with lot_list" ) << Delete Columns( :File_name );
+
+    step_name = "Close Data Table: ATR_table";
+    //Close Data Table: ATR_table
+    Close( Data Table( "ATR_table" ), NoSave );
+
+    step_name = "Rename data table: Join of ATR_table with lot_list → ATR_table";
+    //Rename data table: Join of ATR_table with lot_list → ATR_table
+    Data Table( "Join of ATR_table with lot_list" ) << Set Name( "ATR_table" );
+
+    step_name = "Close Data Table: lot_list";
+    //Close Data Table: lot_list
+    Close( Data Table( "lot_list" ), NoSave );
+
+    step_name = "Process SDR";
+    //Process SDR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "SDR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "SDR" ) <<
+    Subset(
+    	Output Table( "SDR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "SDR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → head_num";
+    //Change column name: c000002 → head_num
+    Data Table( "SDR_table" ):c000002 << Set Name( "head_num" );
+
+    step_name = "Change column name: c000003 → site_grp";
+    //Change column name: c000003 → site_grp
+    Data Table( "SDR_table" ):c000003 << Set Name( "site_grp" );
+
+    step_name = "Change column name: c000004 → site_cnt";
+    //Change column name: c000004 → site_cnt
+    Data Table( "SDR_table" ):c000004 << Set Name( "site_cnt" );
+
+    step_name = "Change column name: c000005 → site_num";
+    //Change column name: c000005 → site_num
+    Data Table( "SDR_table" ):c000005 << Set Name( "site_num" );
+
+    step_name = "Change column display width: site_grp";
+    //Change column display width: site_grp
+    Data Table( "SDR_table" ):site_grp << Set Display Width( 107 );
+
+    step_name = "Change column name: c000006 → hand_typ";
+    //Change column name: c000006 → hand_typ
+    Data Table( "SDR_table" ):c000006 << Set Name( "hand_typ" );
+
+    step_name = "Change column name: c000007 → hand_id";
+    //Change column name: c000007 → hand_id
+    Data Table( "SDR_table" ):c000007 << Set Name( "hand_id" );
+
+    step_name = "Change column name: c000008 → card_typ";
+    //Change column name: c000008 → card_typ
+    Data Table( "SDR_table" ):c000008 << Set Name( "card_typ" );
+
+    step_name = "Change column info: card_id";
+    //Change column info: card_id
+    Data Table( "SDR_table" ):c000009 << Set Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "card_id" );
+
+    step_name = "Change column display width: card_typ";
+    //Change column display width: card_typ
+    Data Table( "SDR_table" ):card_typ << Set Display Width( 102 );
+
+    step_name = "Change column name: c000010 → load_typ";
+    //Change column name: c000010 → load_typ
+    Data Table( "SDR_table" ):c000010 << Set Name( "load_typ" );
+
+    step_name = "Change column name: c000011 → load_id";
+    //Change column name: c000011 → load_id
+    Data Table( "SDR_table" ):c000011 << Set Name( "load_id" );
+
+    step_name = "Change column name: c000012 → dib_typ";
+    //Change column name: c000012 → dib_typ
+    Data Table( "SDR_table" ):c000012 << Set Name( "dib_typ" );
+
+    step_name = "Change column name: c000013 → dib_id";
+    //Change column name: c000013 → dib_id
+    Data Table( "SDR_table" ):c000013 << Set Name( "dib_id" );
+
+    step_name = "Change column name: c000014 → cabl_typ";
+    //Change column name: c000014 → cabl_typ
+    Data Table( "SDR_table" ):c000014 << Set Name( "cabl_typ" );
+
+    step_name = "Change column name: c000015 → cabl_id";
+    //Change column name: c000015 → cabl_id
+    Data Table( "SDR_table" ):c000015 << Set Name( "cabl_id" );
+
+    step_name = "Change column name: c000016 → cont_typ";
+    //Change column name: c000016 → cont_typ
+    Data Table( "SDR_table" ):c000016 << Set Name( "cont_typ" );
+
+    step_name = "Change column name: c000017 → cont_id";
+    //Change column name: c000017 → cont_id
+    Data Table( "SDR_table" ):c000017 << Set Name( "cont_id" );
+
+    step_name = "Change column name: c000018 → lasr_typ";
+    //Change column name: c000018 → lasr_typ
+    Data Table( "SDR_table" ):c000018 << Set Name( "lasr_typ" );
+
+    step_name = "Change column name: c000019 → lasr_id";
+    //Change column name: c000019 → lasr_id
+    Data Table( "SDR_table" ):c000019 << Set Name( "lasr_id" );
+
+    step_name = "Change column name: c000020 → extr_typ";
+    //Change column name: c000020 → extr_typ
+    Data Table( "SDR_table" ):c000020 << Set Name( "extr_typ" );
+
+    step_name = "Change column name: c000021 → extr_id";
+    //Change column name: c000021 → extr_id
+    Data Table( "SDR_table" ):c000021 << Set Name( "extr_id" );
+
+    step_name = "Change column info: hand_id";
+    //Change column info: hand_id
+    Data Table( "SDR_table" ):hand_id << Set Data Type( Character ) <<
+    Set Modeling Type( "Nominal" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "SDR_table" ) << Delete Columns(
+    	:c000022, :c000023, :c000024, :c000025, :c000026, :c000027, :c000028, :c000029,
+    	:c000030, :c000031, :c000032, :c000033, :c000034, :c000035, :c000036, :c000037,
+    	:c000038, :c000039
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_atdf" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_atdf" ) << Clear Row States;
+
+    step_name = "Process PMR";
+    //Process PMR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PMR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PMR" ) <<
+    Subset(
+    	Output Table( "PMR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PMR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → pmr_indx";
+    //Change column name: c000002 → pmr_indx
+    Data Table( "PMR_table" ):c000002 << Set Name( "pmr_indx" );
+
+    step_name = "Change column name: c000003 → chan_typ";
+    //Change column name: c000003 → chan_typ
+    Data Table( "PMR_table" ):c000003 << Set Name( "chan_typ" );
+
+    step_name = "Change column display widths";
+    //Change column display widths
+    Local( {dt},
+    	dt = Data Table( "PMR_table" );
+    	dt:chan_typ << Set Display Width( 98 );
+    );
+
+    step_name = "Change column name: c000004 → chan_nam";
+    //Change column name: c000004 → chan_nam
+    Data Table( "PMR_table" ):c000004 << Set Name( "chan_nam" );
+
+    step_name = "Change column name: c000005 → phy_nam";
+    //Change column name: c000005 → phy_nam
+    Data Table( "PMR_table" ):c000005 << Set Name( "phy_nam" );
+
+    step_name = "Change column name: c000006 → log_nam";
+    //Change column name: c000006 → log_nam
+    Data Table( "PMR_table" ):c000006 << Set Name( "log_nam" );
+
+    step_name = "Change column name: c000007 → head_num";
+    //Change column name: c000007 → head_num
+    Data Table( "PMR_table" ):c000007 << Set Name( "head_num" );
+
+    step_name = "Change column name: c000008 → site_num";
+    //Change column name: c000008 → site_num
+    Data Table( "PMR_table" ):c000008 << Set Name( "site_num" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "PMR_table" ) << Delete Columns(
+    	:c000009, :c000010, :c000011, :c000012, :c000013, :c000014, :c000015, :c000016,
+    	:c000017, :c000018, :c000019, :c000020, :c000021, :c000022, :c000023, :c000024,
+    	:c000025, :c000026, :c000027, :c000028, :c000029, :c000030, :c000031, :c000032,
+    	:c000033, :c000034, :c000035, :c000036, :c000037, :c000038, :c000039
+    );
+
+    step_name = "Change column display width: site_num";
+    //Change column display width: site_num
+    Data Table( "PMR_table" ):site_num << Set Display Width( 83 );
+
+    step_name = "Process MPR";
+    //Process MPR
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "MPR" ) <<
+    Subset(
+    	Output Table( "MPR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "MPR" ) << Delete Rows;
+
+    step_name = "Process TSR";
+    //Process TSR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "TSR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "TSR" ) <<
+    Subset(
+    	Output Table( "TSR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "TSR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → head_num";
+    //Change column name: c000002 → head_num
+    Data Table( "TSR_table" ):c000002 << Set Name( "head_num" );
+
+    step_name = "Change column name: c000003 → site_num";
+    //Change column name: c000003 → site_num
+    Data Table( "TSR_table" ):c000003 << Set Name( "site_num" );
+
+    step_name = "Change column display widths";
+    //Change column display widths
+    Local( {dt},
+    	dt = Data Table( "TSR_table" );
+    	dt:site_num << Set Display Width( 132 );
+    );
+
+    step_name = "Change column name: c000004 → test_typ";
+    //Change column name: c000004 → test_typ
+    Data Table( "TSR_table" ):c000004 << Set Name( "test_typ" );
+
+    step_name = "Change column name: c000005 → test_num";
+    //Change column name: c000005 → test_num
+    Data Table( "TSR_table" ):c000005 << Set Name( "test_num" );
+
+    step_name = "Change column name: c000006 → exec_cnt";
+    //Change column name: c000006 → exec_cnt
+    Data Table( "TSR_table" ):c000006 << Set Name( "exec_cnt" );
+
+    step_name = "Change column name: c000007 → fail_cnt";
+    //Change column name: c000007 → fail_cnt
+    Data Table( "TSR_table" ):c000007 << Set Name( "fail_cnt" );
+
+    step_name = "Change column name: c000008 → alrm_cnt";
+    //Change column name: c000008 → alrm_cnt
+    Data Table( "TSR_table" ):c000008 << Set Name( "alrm_cnt" );
+
+    step_name = "Change column display widths";
+    //Change column display widths
+    Local( {dt},
+    	dt = Data Table( "TSR_table" );
+    	dt:alrm_cnt << Set Display Width( 102 );
+    );
+
+    step_name = "Change column display width: head_num";
+    //Change column display width: head_num
+    Data Table( "TSR_table" ):head_num << Set Display Width( 60 );
+
+    step_name = "Change column display width: site_num";
+    //Change column display width: site_num
+    Data Table( "TSR_table" ):site_num << Set Display Width( 60 );
+
+    step_name = "Change column display width: fail_cnt";
+    //Change column display width: fail_cnt
+    Data Table( "TSR_table" ):fail_cnt << Set Display Width( 54 );
+
+    step_name = "Change column name: c000009 → test_nam";
+    //Change column name: c000009 → test_nam
+    Data Table( "TSR_table" ):c000009 << Set Name( "test_nam" );
+
+    step_name = "Change column name: c000010 → seq_nam";
+    //Change column name: c000010 → seq_nam
+    Data Table( "TSR_table" ):c000010 << Set Name( "seq_nam" );
+
+    step_name = "Change column display widths";
+    //Change column display widths
+    Local( {dt},
+    	dt = Data Table( "TSR_table" );
+    	dt:seq_nam << Set Display Width( 84 );
+    );
+
+    step_name = "Change column name: c000011 → test_lbl";
+    //Change column name: c000011 → test_lbl
+    Data Table( "TSR_table" ):c000011 << Set Name( "test_lbl" );
+
+    step_name = "Change column name: c000012 → opt_flag";
+    //Change column name: c000012 → opt_flag
+    Data Table( "TSR_table" ):c000012 << Set Name( "opt_flag" );
+
+    step_name = "Change column name: c000013 → test_tim";
+    //Change column name: c000013 → test_tim
+    Data Table( "TSR_table" ):c000013 << Set Name( "test_tim" );
+
+    step_name = "Change column name: c000014 → test_min";
+    //Change column name: c000014 → test_min
+    Data Table( "TSR_table" ):c000014 << Set Name( "test_min" );
+
+    step_name = "Change column name: c000015 → test_max";
+    //Change column name: c000015 → test_max
+    Data Table( "TSR_table" ):c000015 << Set Name( "test_max" );
+
+    step_name = "Change column name: c000016 → tst_sums";
+    //Change column name: c000016 → tst_sums
+    Data Table( "TSR_table" ):c000016 << Set Name( "tst_sums" );
+
+    step_name = "Change column name: c000017 → tst_sqrs";
+    //Change column name: c000017 → tst_sqrs
+    Data Table( "TSR_table" ):c000017 << Set Name( "tst_sqrs" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "TSR_table" ) << Delete Columns(
+    	:c000018, :c000019, :c000020, :c000021, :c000022, :c000023, :c000024, :c000025,
+    	:c000026, :c000027, :c000028, :c000029, :c000030, :c000031, :c000032, :c000033,
+    	:c000034, :c000035, :c000036, :c000037, :c000038, :c000039
+    );
+
+    step_name = "Change column info: test_num";
+    //Change column info: test_num
+    Data Table( "TSR_table" ):test_num << Set Data Type( Numeric ) <<
+    Set Field Width( 12 );
+
+    step_name = "Change column info: exec_cnt";
+    //Change column info: exec_cnt
+    Data Table( "TSR_table" ):exec_cnt << Set Data Type( Numeric ) <<
+    Set Field Width( 12 );
+
+    step_name = "Change column display width: test_lbl";
+    //Change column display width: test_lbl
+    Data Table( "TSR_table" ):test_lbl << Set Display Width( 183 );
+
+    step_name = "Change column info: test_tim";
+    //Change column info: test_tim
+    Data Table( "TSR_table" ):test_tim << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: test_min";
+    //Change column info: test_min
+    Data Table( "TSR_table" ):test_min << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: test_max";
+    //Change column info: test_max
+    Data Table( "TSR_table" ):test_max << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: tst_sums";
+    //Change column info: tst_sums
+    Data Table( "TSR_table" ):tst_sums << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: tst_sqrs";
+    //Change column info: tst_sqrs
+    Data Table( "TSR_table" ):tst_sqrs << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: test_nam";
+    //Change column info: test_nam
+    Data Table( "TSR_table" ):test_nam << Set Data Type( Character ) <<
+    Set Modeling Type( "Nominal" );
+
+    step_name = "Change column display widths";
+    //Change column display widths
+    Local( {dt},
+    	dt = Data Table( "TSR_table" );
+    	dt:site_num << Set Display Width( 96 );
+    );
+
+    step_name = "process HBR";
+    //process HBR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "HBR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "HBR" ) <<
+    Subset(
+    	Output Table( "HBR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "HBR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → head_num";
+    //Change column name: c000002 → head_num
+    Data Table( "HBR_table" ):c000002 << Set Name( "head_num" );
+
+    step_name = "Change column name: c000003 → site_num";
+    //Change column name: c000003 → site_num
+    Data Table( "HBR_table" ):c000003 << Set Name( "site_num" );
+
+    step_name = "Change column name: c000004 → hbin_num";
+    //Change column name: c000004 → hbin_num
+    Data Table( "HBR_table" ):c000004 << Set Name( "hbin_num" );
+
+    step_name = "Change column name: c000005 → hbin_cnt";
+    //Change column name: c000005 → hbin_cnt
+    Data Table( "HBR_table" ):c000005 << Set Name( "hbin_cnt" );
+
+    step_name = "Change column name: c000006 → hbin_pf";
+    //Change column name: c000006 → hbin_pf
+    Data Table( "HBR_table" ):c000006 << Set Name( "hbin_pf" );
+
+    step_name = "Change column name: c000007 → hbin_nam";
+    //Change column name: c000007 → hbin_nam
+    Data Table( "HBR_table" ):c000007 << Set Name( "hbin_nam" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "HBR_table" ) << Delete Columns(
+    	:c000008, :c000009, :c000010, :c000011, :c000012, :c000013, :c000014, :c000015,
+    	:c000016, :c000017, :c000018, :c000019, :c000020, :c000021, :c000022, :c000023,
+    	:c000024, :c000025, :c000026, :c000027, :c000028, :c000029, :c000030, :c000031,
+    	:c000032, :c000033, :c000034, :c000035, :c000036, :c000037, :c000038, :c000039
+    );
+
+    step_name = "Change column display width: site_num";
+    //Change column display width: site_num
+    Data Table( "HBR_table" ):site_num << Set Display Width( 93 );
+
+    step_name = "Change column display width: head_num";
+    //Change column display width: head_num
+    Data Table( "HBR_table" ):head_num << Set Display Width( 101 );
+
+    step_name = "Change column info: hbin_cnt";
+    //Change column info: hbin_cnt
+    Data Table( "HBR_table" ):hbin_cnt << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: hbin_nam";
+    //Change column info: hbin_nam
+    Data Table( "HBR_table" ):hbin_nam << Set Data Type( Character ) <<
+    Set Modeling Type( "Nominal" );
+
+    step_name = "Process SBR";
+    //Process SBR
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_atdf" ) << Clear Row States;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "SBR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "SBR" ) <<
+    Subset(
+    	Output Table( "SBR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "SBR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → head_num";
+    //Change column name: c000002 → head_num
+    Data Table( "SBR_table" ):c000002 << Set Name( "head_num" );
+
+    step_name = "Change column name: c000003 → site_num";
+    //Change column name: c000003 → site_num
+    Data Table( "SBR_table" ):c000003 << Set Name( "site_num" );
+
+    step_name = "Change column name: c000004 → sbin_num";
+    //Change column name: c000004 → sbin_num
+    Data Table( "SBR_table" ):c000004 << Set Name( "sbin_num" );
+
+    step_name = "Change column name: c000005 → sbin_cnt";
+    //Change column name: c000005 → sbin_cnt
+    Data Table( "SBR_table" ):c000005 << Set Name( "sbin_cnt" );
+
+    step_name = "Change column name: c000006 → sbin_pf";
+    //Change column name: c000006 → sbin_pf
+    Data Table( "SBR_table" ):c000006 << Set Name( "sbin_pf" );
+
+    step_name = "Change column name: c000007 → sbin_nam";
+    //Change column name: c000007 → sbin_nam
+    Data Table( "SBR_table" ):c000007 << Set Name( "sbin_nam" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "SBR_table" ) << Delete Columns(
+    	:c000008, :c000009, :c000010, :c000011, :c000012, :c000013, :c000014, :c000015,
+    	:c000016, :c000017, :c000018, :c000019, :c000020, :c000021, :c000022, :c000023,
+    	:c000024, :c000025, :c000026, :c000027, :c000028, :c000029, :c000030, :c000031,
+    	:c000032, :c000033, :c000034, :c000035, :c000036, :c000037, :c000038, :c000039
+    );
+
+    step_name = "Change column display width: Head_num";
+    //Change column display width: Head_num
+    Data Table( "SBR_table" ):Head_num << Set Display Width( 88 );
+
+    step_name = "Change column display width: site_num";
+    //Change column display width: site_num
+    Data Table( "SBR_table" ):site_num << Set Display Width( 61 );
+
+    step_name = "Change column info: sbin_cnt";
+    //Change column info: sbin_cnt
+    Data Table( "SBR_table" ):sbin_cnt << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: sbin_nam";
+    //Change column info: sbin_nam
+    Data Table( "SBR_table" ):sbin_nam << Set Data Type( Character ) <<
+    Set Modeling Type( "Nominal" );
+
+    step_name = "Process PCR";
+    //Process PCR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PCR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PCR" ) <<
+    Subset(
+    	Output Table( "PCR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PCR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → head_num";
+    //Change column name: c000002 → head_num
+    Data Table( "PCR_table" ):c000002 << Set Name( "head_num" );
+
+    step_name = "Change column name: c000003 → site_num";
+    //Change column name: c000003 → site_num
+    Data Table( "PCR_table" ):c000003 << Set Name( "site_num" );
+
+    step_name = "Change column name: c000004 → part_cnt";
+    //Change column name: c000004 → part_cnt
+    Data Table( "PCR_table" ):c000004 << Set Name( "part_cnt" );
+
+    step_name = "Change column name: c000005 → rtst_cnt";
+    //Change column name: c000005 → rtst_cnt
+    Data Table( "PCR_table" ):c000005 << Set Name( "rtst_cnt" );
+
+    step_name = "Change column name: c000006 → abrt_cnt";
+    //Change column name: c000006 → abrt_cnt
+    Data Table( "PCR_table" ):c000006 << Set Name( "abrt_cnt" );
+
+    step_name = "Change column name: c000007 → good_cnt";
+    //Change column name: c000007 → good_cnt
+    Data Table( "PCR_table" ):c000007 << Set Name( "good_cnt" );
+
+    step_name = "Change column name: c000008 → func_cnt";
+    //Change column name: c000008 → func_cnt
+    Data Table( "PCR_table" ):c000008 << Set Name( "func_cnt" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "PCR_table" ) << Delete Columns(
+    	:c000009, :c000010, :c000011, :c000012, :c000013, :c000014, :c000015, :c000016,
+    	:c000017, :c000018, :c000019, :c000020, :c000021, :c000022, :c000023, :c000024,
+    	:c000025, :c000026, :c000027, :c000028, :c000029, :c000030, :c000031, :c000032,
+    	:c000033, :c000034, :c000035, :c000036, :c000037, :c000038, :c000039
+    );
+
+    step_name = "Change column display width: head_num";
+    //Change column display width: head_num
+    Data Table( "PCR_table" ):head_num << Set Display Width( 95 );
+
+    step_name = "Change column display width: site_num";
+    //Change column display width: site_num
+    Data Table( "PCR_table" ):site_num << Set Display Width( 66 );
+
+    step_name = "Change column display width: func_cnt";
+    //Change column display width: func_cnt
+    Data Table( "PCR_table" ):func_cnt << Set Display Width( 96 );
+
+    step_name = "Change column display width: abrt_cnt";
+    //Change column display width: abrt_cnt
+    Data Table( "PCR_table" ):abrt_cnt << Set Display Width( 88 );
+
+    step_name = "Change column info: part_cnt";
+    //Change column info: part_cnt
+    Data Table( "PCR_table" ):part_cnt << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: rtst_cnt";
+    //Change column info: rtst_cnt
+    Data Table( "PCR_table" ):rtst_cnt << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Clear row selection";
+    //Clear row selection
+    Data Table( "Source_atdf" ) << Clear Select;
+
+    step_name = "Process MRR";
+    //Process MRR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "MRR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "MRR" ) <<
+    Subset(
+    	Output Table( "MRR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "MRR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → finish_t";
+    //Change column name: c000002 → finish_t
+    Data Table( "MRR_table" ):c000002 << Set Name( "finish_t" );
+
+    step_name = "Change column name: c000003 → disp_code";
+    //Change column name: c000003 → disp_code
+    Data Table( "MRR_table" ):c000003 << Set Name( "disp_code" );
+
+    step_name = "Change column name: c000004 → usr_desc";
+    //Change column name: c000004 → usr_desc
+    Data Table( "MRR_table" ):c000004 << Set Name( "usr_desc" );
+
+    step_name = "Change column display width: disp_code";
+    //Change column display width: disp_code
+    Data Table( "MRR_table" ):disp_code << Set Display Width( 131 );
+
+    step_name = "Change column display widths";
+    //Change column display widths
+    Local( {dt},
+    	dt = Data Table( "MRR_table" );
+    	dt:usr_desc << Set Display Width( 161 );
+    );
+
+    step_name = "Change column name: c000005 → exc_desc";
+    //Change column name: c000005 → exc_desc
+    Data Table( "MRR_table" ):c000005 << Set Name( "exc_desc" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "MRR_table" ) << Delete Columns(
+    	:c000006, :c000007, :c000008, :c000009, :c000010, :c000011, :c000012, :c000013,
+    	:c000014, :c000015, :c000016, :c000017, :c000018, :c000019, :c000020, :c000021,
+    	:c000022, :c000023, :c000024, :c000025, :c000026, :c000027, :c000028, :c000029,
+    	:c000030, :c000031, :c000032, :c000033, :c000034, :c000035, :c000036, :c000037,
+    	:c000038, :c000039
+    );
+
+    step_name = "Process_PIR";
+    //Process_PIR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PIR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PIR" ) <<
+    Subset(
+    	Output Table( "PIR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PIR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → head_num";
+    //Change column name: c000002 → head_num
+    Data Table( "PIR_table" ):c000002 << Set Name( "head_num" );
+
+    step_name = "Change column name: c000003 → site_num";
+    //Change column name: c000003 → site_num
+    Data Table( "PIR_table" ):c000003 << Set Name( "site_num" );
+
+    step_name = "Change column display widths";
+    //Change column display widths
+    Local( {dt},
+    	dt = Data Table( "PIR_table" );
+    	dt:site_num << Set Display Width( 77 );
+    );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "PIR_table" ) << Delete Columns(
+    	:c000004, :c000005, :c000006, :c000007, :c000008, :c000009, :c000010, :c000011,
+    	:c000012, :c000013, :c000014, :c000015, :c000016, :c000017, :c000018, :c000019,
+    	:c000020, :c000021, :c000022, :c000023, :c000024, :c000025, :c000026, :c000027,
+    	:c000028, :c000029, :c000030, :c000031, :c000032, :c000033, :c000034, :c000035,
+    	:c000036, :c000037, :c000038, :c000039
+    );
+
+    step_name = "Process PRR";
+    //Process PRR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PRR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PRR" ) <<
+    Subset(
+    	Output Table( "PRR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "PRR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → head_num";
+    //Change column name: c000002 → head_num
+    Data Table( "PRR_table" ):c000002 << Set Name( "head_num" );
+
+    step_name = "Change column name: c000003 → site_num";
+    //Change column name: c000003 → site_num
+    Data Table( "PRR_table" ):c000003 << Set Name( "site_num" );
+
+    step_name = "Change column name: c000004 → part_flg";
+    //Change column name: c000004 → part_flg
+    Data Table( "PRR_table" ):c000004 << Set Name( "part_flg" );
+
+    step_name = "Change column display width: site_num";
+    //Change column display width: site_num
+    Data Table( "PRR_table" ):site_num << Set Display Width( 70 );
+
+    step_name = "Change column name: c000005 → num_test";
+    //Change column name: c000005 → num_test
+    Data Table( "PRR_table" ):c000005 << Set Name( "num_test" );
+
+    step_name = "Change column name: c000006 → hard_bin";
+    //Change column name: c000006 → hard_bin
+    Data Table( "PRR_table" ):c000006 << Set Name( "hard_bin" );
+
+    step_name = "Change column name: c000007 → soft_bin";
+    //Change column name: c000007 → soft_bin
+    Data Table( "PRR_table" ):c000007 << Set Name( "soft_bin" );
+
+    step_name = "Change column name: c000008 → x_coord";
+    //Change column name: c000008 → x_coord
+    Data Table( "PRR_table" ):c000008 << Set Name( "x_coord" );
+
+    step_name = "Change column name: c000009 → y_coord";
+    //Change column name: c000009 → y_coord
+    Data Table( "PRR_table" ):c000009 << Set Name( "y_coord" );
+
+    step_name = "Change column display width: x_coord";
+    //Change column display width: x_coord
+    Data Table( "PRR_table" ):x_coord << Set Display Width( 101 );
+
+    step_name = "Change column name: c000010 → test_t";
+    //Change column name: c000010 → test_t
+    Data Table( "PRR_table" ):c000010 << Set Name( "test_t" );
+
+    step_name = "Change column name: c000011 → part_id";
+    //Change column name: c000011 → part_id
+    Data Table( "PRR_table" ):c000011 << Set Name( "part_id" );
+
+    step_name = "Change column name: c000012 → part_txt";
+    //Change column name: c000012 → part_txt
+    Data Table( "PRR_table" ):c000012 << Set Name( "part_txt" );
+
+    step_name = "Change column name: c000013 → part_fix";
+    //Change column name: c000013 → part_fix
+    Data Table( "PRR_table" ):c000013 << Set Name( "part_fix" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "PRR_table" ) << Delete Columns(
+    	:c000014, :c000015, :c000016, :c000017, :c000018, :c000019, :c000020, :c000021,
+    	:c000022, :c000023, :c000024, :c000025, :c000026, :c000027, :c000028, :c000029,
+    	:c000030, :c000031, :c000032, :c000033, :c000034, :c000035, :c000036, :c000037,
+    	:c000038, :c000039
+    );
+
+    step_name = "Change column info: x_coord";
+    //Change column info: x_coord
+    Data Table( "PRR_table" ):x_coord << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: y_coord";
+    //Change column info: y_coord
+    Data Table( "PRR_table" ):y_coord << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: test_t";
+    //Change column info: test_t
+    Data Table( "PRR_table" ):test_t << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Process DTR";
+    //Process DTR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "DTR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "DTR" ) <<
+    Subset(
+    	Output Table( "DTR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "DTR" ) << Delete Rows;
+
+    step_name = "Change column name: c000002 → text_dat";
+    //Change column name: c000002 → text_dat
+    Data Table( "DTR_table" ):c000002 << Set Name( "text_dat" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "DTR_table" ) << Delete Columns(
+    	:c000003, :c000004, :c000005, :c000006, :c000007, :c000008, :c000009, :c000010,
+    	:c000011, :c000012, :c000013, :c000014, :c000015, :c000016, :c000017, :c000018,
+    	:c000019, :c000020, :c000021, :c000022, :c000023, :c000024, :c000025, :c000026,
+    	:c000027, :c000028, :c000029, :c000030, :c000031, :c000032, :c000033, :c000034,
+    	:c000035, :c000036, :c000037, :c000038, :c000039
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+
+    step_name = "Process PTR";
+    //Process PTR
+
+    step_name = "Change column name: c000002 → test_num";
+    //Change column name: c000002 → test_num
+    Data Table( "Source_atdf" ):c000002 << Set Name( "test_num" );
+
+    step_name = "Change column name: c000004 → site_num";
+    //Change column name: c000004 → site_num
+    Data Table( "Source_atdf" ):c000004 << Set Name( "site_num" );
+
+    step_name = "Change column name: c000005 → test_flg";
+    //Change column name: c000005 → test_flg
+    Data Table( "Source_atdf" ):c000005 << Set Name( "test_flg" );
+
+    step_name = "Change column name: c000006 → parm_flg";
+    //Change column name: c000006 → parm_flg
+    Data Table( "Source_atdf" ):c000006 << Set Name( "parm_flg" );
+
+    step_name = "Change column name: c000007 → result";
+    //Change column name: c000007 → result
+    Data Table( "Source_atdf" ):c000007 << Set Name( "result" );
+
+    step_name = "Change column name: c000008 → test_txt";
+    //Change column name: c000008 → test_txt
+    Data Table( "Source_atdf" ):c000008 << Set Name( "test_txt" );
+
+    step_name = "Change column name: c000009 → alarm_id";
+    //Change column name: c000009 → alarm_id
+    Data Table( "Source_atdf" ):c000009 << Set Name( "alarm_id" );
+
+    step_name = "Change column name: c000010 → opt_flag";
+    //Change column name: c000010 → opt_flag
+    Data Table( "Source_atdf" ):c000010 << Set Name( "opt_flag" );
+
+    step_name = "Change column name: c000011 → res_scal";
+    //Change column name: c000011 → res_scal
+    Data Table( "Source_atdf" ):c000011 << Set Name( "res_scal" );
+
+    step_name = "Change column name: c000012 → llm_scal";
+    //Change column name: c000012 → llm_scal
+    Data Table( "Source_atdf" ):c000012 << Set Name( "llm_scal" );
+
+    step_name = "Change column name: c000013 → hlm_scal";
+    //Change column name: c000013 → hlm_scal
+    Data Table( "Source_atdf" ):c000013 << Set Name( "hlm_scal" );
+
+    step_name = "Change column name: c000014 → lo_limit";
+    //Change column name: c000014 → lo_limit
+    Data Table( "Source_atdf" ):c000014 << Set Name( "lo_limit" );
+
+    step_name = "Change column name: c000015 → hi_limit";
+    //Change column name: c000015 → hi_limit
+    Data Table( "Source_atdf" ):c000015 << Set Name( "hi_limit" );
+
+    step_name = "Change column name: c000016 → units";
+    //Change column name: c000016 → units
+    Data Table( "Source_atdf" ):c000016 << Set Name( "units" );
+
+    step_name = "Change column name: c000017 → c_resfmt";
+    //Change column name: c000017 → c_resfmt
+    Data Table( "Source_atdf" ):c000017 << Set Name( "c_resfmt" );
+
+    step_name = "Change column name: c000018 → c_llmfmt";
+    //Change column name: c000018 → c_llmfmt
+    Data Table( "Source_atdf" ):c000018 << Set Name( "c_llmfmt" );
+
+    step_name = "Change column name: c000019 → c_hlmfmt";
+    //Change column name: c000019 → c_hlmfmt
+    Data Table( "Source_atdf" ):c000019 << Set Name( "c_hlmfmt" );
+
+    step_name = "Change column name: c000020 → lo_spec";
+    //Change column name: c000020 → lo_spec
+    Data Table( "Source_atdf" ):c000020 << Set Name( "lo_spec" );
+
+    step_name = "Change column name: c000021 → hi_spec";
+    //Change column name: c000021 → hi_spec
+    Data Table( "Source_atdf" ):c000021 << Set Name( "hi_spec" );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "Source_atdf" ) << Delete Columns(
+    	:c000022, :c000023, :c000024, :c000025, :c000026, :c000027, :c000028, :c000029,
+    	:c000030, :c000031, :c000032, :c000033, :c000034, :c000035, :c000036, :c000037,
+    	:c000038, :c000039
+    );
+
+    step_name = "Change column name: c000003 → head_num";
+    //Change column name: c000003 → head_num
+    Data Table( "Source_atdf" ):c000003 << Set Name( "head_num" );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_atdf" ) << Clear Row States;
+
+    step_name = "Rename data table: Source_atdf → PTR_table";
+    //Rename data table: Source_atdf → PTR_table
+    Data Table( "Source_atdf" ) << Set Name( "PTR_table" );
+
+    step_name = "Change column display width: test_num";
+    //Change column display width: test_num
+    Data Table( "PTR_table" ):test_num << Set Display Width( 93 );
+
+    step_name = "Change column display width: stdf_record_index";
+    //Change column display width: stdf_record_index
+    Data Table( "PTR_table" ):stdf_record_index << Set Display Width( 60 );
+
+    step_name = "Change column display width: stdf_record_index";
+    //Change column display width: stdf_record_index
+    Data Table( "PTR_table" ):stdf_record_index << Set Display Width( 76 );
+
+    step_name = "Change column display width: head_num";
+    //Change column display width: head_num
+    Data Table( "PTR_table" ):head_num << Set Display Width( 48 );
+
+    step_name = "Change column info: lo_limit";
+    //Change column info: lo_limit
+    Data Table( "PTR_table" ):lo_limit << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: hi_limit";
+    //Change column info: hi_limit
+    Data Table( "PTR_table" ):hi_limit << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: lo_spec";
+    //Change column info: lo_spec
+    Data Table( "PTR_table" ):lo_spec << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: result";
+    //Change column info: result
+    Data Table( "PTR_table" ):result << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Change column info: hi_spec";
+    //Change column info: hi_spec
+    Data Table( "PTR_table" ):hi_spec << Set Data Type( Numeric ) <<
+    Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
+
+    step_name = "Add the small records to the cumulative tables";
+    //Add the small records to the cumulative tables
+
+    step_name = "Open Data Table: ATR_cumulative.jmp";
+    //Open Data Table: ATR_cumulative.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/ATR_cumulative.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "ATR_cumulative" ) << Concatenate(
+    	Data Table( "ATR_table" ),
+    	Output Table( "Concat of ATR_cumulative, ATR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: ATR_cumulative.jmp";
+    //Save data table: ATR_cumulative.jmp
+    Data Table( "ATR_cumulative" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/ATR_cumulative.jmp"
+    );
+
+    step_name = "Close Data Table: ATR_cumulative";
+    //Close Data Table: ATR_cumulative
+    Close( Data Table( "ATR_cumulative" ), NoSave );
+
+    step_name = "Open Data Table: HBR_cumulative.jmp";
+    //Open Data Table: HBR_cumulative.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/HBR_cumulative.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "HBR_cumulative" ) << Concatenate(
+    	Data Table( "HBR_table" ),
+    	Output Table( "Concat of HBR_cumulative, HBR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: HBR_cumulative.jmp";
+    //Save data table: HBR_cumulative.jmp
+    Data Table( "HBR_cumulative" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/HBR_cumulative.jmp"
+    );
+
+    step_name = "Close Data Table: HBR_cumulative";
+    //Close Data Table: HBR_cumulative
+    Close( Data Table( "HBR_cumulative" ), NoSave );
+
+    step_name = "Open Data Table: MIR_cumulative.jmp";
+    //Open Data Table: MIR_cumulative.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/MIR_cumulative.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "MIR_cumulative" ) << Concatenate(
+    	Data Table( "MIR_table" ),
+    	Output Table( "Concat of MIR_cumulative, MIR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: MIR_cumulative.jmp";
+    //Save data table: MIR_cumulative.jmp
+    Data Table( "MIR_cumulative" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/MIR_cumulative.jmp"
+    );
+
+    step_name = "Close Data Table: MIR_cumulative";
+    //Close Data Table: MIR_cumulative
+    Close( Data Table( "MIR_cumulative" ), NoSave );
+
+    step_name = "Open Data Table: MPR_cumulative.jmp";
+    //Open Data Table: MPR_cumulative.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/MPR_cumulative.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "MPR_cumulative" ) << Concatenate(
+    	Data Table( "MPR_table" ),
+    	Output Table( "Concat of MPR_cumulative, MPR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: MPR_cumulative.jmp";
+    //Save data table: MPR_cumulative.jmp
+    Data Table( "MPR_cumulative" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/MPR_cumulative.jmp"
+    );
+
+    step_name = "Close Data Table: MPR_cumulative";
+    //Close Data Table: MPR_cumulative
+    Close( Data Table( "MPR_cumulative" ), NoSave );
+
+    step_name = "Open Data Table: MRR_cumulative.jmp";
+    //Open Data Table: MRR_cumulative.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/MRR_cumulative.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "MRR_cumulative" ) << Concatenate(
+    	Data Table( "MRR_table" ),
+    	Output Table( "Concat of MRR_cumulative, MRR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: MRR_cumulative.jmp";
+    //Save data table: MRR_cumulative.jmp
+    Data Table( "MRR_cumulative" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/MRR_cumulative.jmp"
+    );
+
+    step_name = "Close Data Table: MRR_cumulative";
+    //Close Data Table: MRR_cumulative
+    Close( Data Table( "MRR_cumulative" ), NoSave );
+
+    step_name = "Open Data Table: PCR_cumulative.jmp";
+    //Open Data Table: PCR_cumulative.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/PCR_cumulative.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "PCR_cumulative" ) << Concatenate(
+    	Data Table( "PCR_table" ),
+    	Output Table( "Concat of PCR_cumulative, PCR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: PCR_cumulative.jmp";
+    //Save data table: PCR_cumulative.jmp
+    Data Table( "PCR_cumulative" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/PCR_cumulative.jmp"
+    );
+
+    step_name = "Close Data Table: PCR_cumulative";
+    //Close Data Table: PCR_cumulative
+    Close( Data Table( "PCR_cumulative" ), NoSave );
+
+    step_name = "Open Data Table: SBR_cumulative.jmp";
+    //Open Data Table: SBR_cumulative.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/SBR_cumulative.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "SBR_cumulative" ) << Concatenate(
+    	Data Table( "SBR_table" ),
+    	Output Table( "Concat of SBR_cumulative, SBR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: SBR_cumulative.jmp";
+    //Save data table: SBR_cumulative.jmp
+    Data Table( "SBR_cumulative" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/SBR_cumulative.jmp"
+    );
+
+    step_name = "Close Data Table: SBR_cumulative";
+    //Close Data Table: SBR_cumulative
+    Close( Data Table( "SBR_cumulative" ), NoSave );
+
+    step_name = "Open Data Table: SDR_cumulative.jmp";
+    //Open Data Table: SDR_cumulative.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/SDR_cumulative.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "SDR_cumulative" ) << Concatenate(
+    	Data Table( "SDR_table" ),
+    	Output Table( "Concat of SDR_cumulative, SDR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: SDR_cumulative.jmp";
+    //Save data table: SDR_cumulative.jmp
+    Data Table( "SDR_cumulative" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/SDR_cumulative.jmp"
+    );
+
+    step_name = "Close Data Table: SDR_cumulative";
+    //Close Data Table: SDR_cumulative
+    Close( Data Table( "SDR_cumulative" ), NoSave );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "PTR_table" ) << Clear Row States;
+
+    step_name = "Make a \!"super\!" file with all records, in order";
+    //Make a "super" file with all records, in order
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "ATR_table" ) << Concatenate(
+    	Data Table( "PTR_table" ),
+    	Data Table( "MIR_table" ),
+    	Data Table( "SDR_table" ),
+    	Data Table( "PMR_table" ),
+    	Data Table( "TSR_table" ),
+    	Data Table( "HBR_table" ),
+    	Data Table( "SBR_table" ),
+    	Data Table( "PCR_table" ),
+    	Data Table( "MRR_table" ),
+    	Data Table( "PIR_table" ),
+    	Data Table( "PRR_table" ),
+    	Data Table( "DTR_table" ),
+    	Output Table( "superset_table" )
+    );
+
+    step_name = "Sort data table";
+    //Sort data table
+    Data Table( "superset_table" ) << Sort(
+    	By( :stdf_record_index ),
+    	Replace Table,
+    	Order( Ascending )
+    );
+
+    step_name = "Move selected column: Mod_time";
+    //Move selected column: Mod_time
+    Data Table( "superset_table" ) <<
+    Move Selected Columns( {:Mod_time}, after( :stdf_record_index ) );
+
+    step_name = "Save data table: P6BB18-50D-RUN1_20240521133931_super.jmp";
+    //Save data table: P6BB18-50D-RUN1_20240521133931_super.jmp
+    Data Table( "superset_table" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/superfiles/P6BB18-50D-RUN1_20240521133931_super.jmp"
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "PTR_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "PTR_table" ) << Clear Row States;
+
+    step_name = "Improve the PTR table by adding in the DTR, PIR, PTR records";
+    //Improve the PTR table by adding in the DTR, PIR, PTR records
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "PTR_table" ) << Concatenate(
+    	Data Table( "PIR_table" ),
+    	Data Table( "PRR_table" ),
+    	Data Table( "DTR_table" ),
+    	Output Table( "concat_out" )
+    );
+
+    step_name = "Sort data table";
+    //Sort data table
+    Data Table( "concat_out" ) << Sort(
+    	By( :stdf_record_index ),
+    	Replace Table,
+    	Order( Ascending )
+    );
+
+    step_name = "Move selected column: text_dat";
+    //Move selected column: text_dat
+    Data Table( "concat_out" ) << Move Selected Columns(
+    	{:text_dat},
+    	after( :site_num )
+    );
+
+    step_name = "Save data table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp";
+    //Save data table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp
+    Data Table( "concat_out" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/PTR_plus/P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp"
+    );
+
+    step_name = "Close Data Table: PTR_table";
+    //Close Data Table: PTR_table
+    Close( Data Table( "PTR_table" ), NoSave );
+);
+
+
+
+
+WF_manually_parse_ATDF_v2();
+//Close();			#When this is ready to be deployed, this has to be there to close it when finished.
+
