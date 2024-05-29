@@ -4,37 +4,53 @@
 // is practical.  because dealing with the damn references is a pain.
 // Note this works!  The key is to add wait(0) as needed to force it to finish what it was doing.
 // this script isn't complete, but it shows the rudiments of how it could work.  I should force it to do basic logging and file I/O to show this is viable
+//
+//This script is a new process, as of May 26 2024.  Using the output of the stdf2text command line, take this output of raw records 
+//and break everything up and clean up according to the STDF spec.  Very little/no cleanup is done here so it should be as input agnostic 
+//as possible.  Opinions and cleanup should be handled by another script.
+//
+// This script takes in an "atdf" and breaks it up by STDF record (MIR, DTR, PTR etc.) and formats each.  It then reassembles them into:
+// o A "super" table with everything.  I don't have any immediate use for this but save these off for now.
+// o A "PTR_plus" table with PTR, DTR, PIR records.  This is used by another JSL script (A "file process_workflow_v1_no_QL" type)to properly clean up the metadata.  This script
+//   is specific to my tester and part.  This generates a so-called "full" table that has all of the x,y,lot metadata added.  THOSE files can be further processed 
+//   with a "pin_process" script that makes a table that contains well formatted data for all non-digital tests that can be used for certain analsies directly
+// o Other records are appended onto cumulative tables like MIR, HBR, SBR etc.  Those records make the most sense as a kind of log for all lots.
 
 Names Default To Here( 1 );
 
 
-WF_manually_parse_ATDF_v2=function({}, 
-    step_name = "Clear row states";
-    //Clear row states
-    Data Table( "Source_atdf" ) << Clear Row States;
+WF_manually_parse_ATDF_v2=function({this_file_name}, 
+	Show("This is called to operate on file name: ",this_file_name);
+    
 
     step_name = "Open zip file";
     //Open zip file
-    zipdt = Open(
-    	"C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\FT_Datalogs\atdf_to_process\FF_D1_0C.atdf.gz",
-    	GZIP
-    );
+    zipdt = Open( this_file_name,GZIP);
     zip_member_list = zipdt << dir;
     For( i = 1, i <= N Items( zip_member_list ), i++,
     	zip_file = zipdt << read( zip_member_list[i], Format( blob ) );
     	dt = Open( zip_file, text );
     );;
+    
+    
+    
+    
+    
 
     step_name = "Rename data table: SS_D5_115C → Source_atdf";
+    Show(step_name);
     //Rename data table: SS_D5_115C → Source_atdf
-    Data Table( "datalog_file_from_stdf2text.atdf" ) << Set Name( "Source_atdf" );
+    Data Table( dt ) << Set Name( "Source_atdf" );
 
     step_name = "Add helper data";
+    Show(step_name);
     //Add helper data
 
     step_name = "Change column name: c000001 → Record_type";
+    Show(step_name);
     //Change column name: c000001 → Record_type
     Data Table( "Source_atdf" ):c000001 << Set Name( "Record_type" );
+    Wait(0);
 
     step_name = "New column: Column 1";
     //New column: Column 1
@@ -44,7 +60,10 @@ WF_manually_parse_ATDF_v2=function({},
     	Format( "Best", 12 ),
     	Set Selected
     ) << Move Selected Columns( {:Column 1}, To First );
-
+	Wait(0);
+	 
+	 
+	 
     step_name = "Change column info: DATA_FILE";
     //Change column info: DATA_FILE
     Data Table( "Source_atdf" ):Column 1 << Set Data Type( Character ) <<
@@ -1975,9 +1994,17 @@ WF_manually_parse_ATDF_v2=function({},
     Close( Data Table( "PTR_table" ), NoSave );
 );
 
+// open a simple text file, possibly created by another script on the fly, to get a list of files to operate on:
+file_list_table = Open( "lot_list_to_process_temp.csv", text );
+Wait(0);
+
+For Each Row(file_list_table,
+	this_file_name= :File_name[Row()];
+	Show ("this filename read is ", this_file_name);			//write to debugger?
+	WF_manually_parse_ATDF_v2(this_file_name);
+)
 
 
-
-WF_manually_parse_ATDF_v2();
+//WF_manually_parse_ATDF_v2();
 //Close();			#When this is ready to be deployed, this has to be there to close it when finished.
 
