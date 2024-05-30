@@ -6,6 +6,236 @@
 
 Names Default To Here( 1 );
 
+////////////////////////////////////////////////
+Process_XYW=function({this_table_name},
+	Show("starting XYW sub");
+
+	
+	step_name = "Rename data table:"; 
+	//Rename data table: Subset_site1 → this_subset
+	Data Table( this_table_name ) << Set Name( "this_subset" );
+
+	step_name = "New column: X_data";
+	//New column: X_data
+	Data Table( "this_subset" ) << New Column( "X_data",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula(
+			If(
+				:Pin_name == "Xcoord" & Contains(
+					:Test_name,
+					"EFUSE_OTP1_DEVICE_ID_READ"
+				),
+				:result,
+				.
+			)
+		)
+	);
+
+	step_name = "new column: X_data_lag";
+	//new column: X_data_lag
+	Data Table( "this_subset" ) << New Column( "X_data_lag",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula( Lag( :X_data, -77 ) )
+	);
+
+	step_name = "New column: X";
+	//New column: X
+	Data Table( "this_subset" ) << New Column( "X",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula( :X_data_lag )
+	);
+
+	step_name = "New column: Y_data";
+	//New column: Y_data
+	Data Table( "this_subset" ) << New Column( "Y_data",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula(
+			If(
+				:Pin_name == "Ycoord" & Contains(
+					:Test_name,
+					"EFUSE_OTP1_DEVICE_ID_READ"
+				),
+				:result,
+				.
+			)
+		)
+	);
+
+	step_name = "New column: Y_data_lag";
+	//New column: Y_data_lag
+	Data Table( "this_subset" ) << New Column( "Y_data_lag",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula( Lag( :Y_data, -78 ) )
+	);
+
+	step_name = "New column: Y";
+	//New column: Y
+	Data Table( "this_subset" ) << New Column( "Y",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula( :Y_data_lag )
+	);
+
+	step_name = "New column: W_data";
+	//New column: W_data
+	Data Table( "this_subset" ) << New Column( "W_data",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula(
+			If(
+				:Pin_name == "Wafer_Num" & Contains(
+					:Test_name,
+					"EFUSE_OTP1_DEVICE_ID_READ"
+				),
+				:result,
+				.
+			)
+		)
+	);
+
+	step_name = "New column: W_data_lag";
+	//New column: W_data_lag
+	Data Table( "this_subset" ) << New Column( "W_data_lag",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula( Lag( :W_data, -79 ) )
+	);
+
+	step_name = "New column: W";
+	//New column: W
+	Data Table( "this_subset" ) << New Column( "W",
+		Numeric,
+		"Nominal",
+		Format( "Best", 12 ),
+		Formula( :W_data_lag )
+	);
+
+	step_name = "Wait for formulas to evaluate";
+	//Wait for formulas to evaluate
+	Data Table( "this_subset" ) << RunFormulas;
+
+	step_name = "Delete column formula: X";
+	//Delete column formula: X
+	Data Table( "this_subset" ):X << Delete Formula;
+
+	step_name = "Delete column formula: X_data";
+	//Delete column formula: X_data
+	Data Table( "this_subset" ):X_data << Delete Formula;
+
+	step_name = "Delete column formula: X_data_lag";
+	//Delete column formula: X_data_lag
+	Data Table( "this_subset" ):X_data_lag << Delete Formula;
+
+	step_name = "Delete column formula: Y";
+	//Delete column formula: Y
+	Data Table( "this_subset" ):Y << Delete Formula;
+
+	step_name = "Delete column formula: Y_data";
+	//Delete column formula: Y_data
+	Data Table( "this_subset" ):Y_data << Delete Formula;
+
+	step_name = "Delete column formula: Y_data_lag";
+	//Delete column formula: Y_data_lag
+	Data Table( "this_subset" ):Y_data_lag << Delete Formula;
+
+	step_name = "Delete column formula: W";
+	//Delete column formula: W
+	Data Table( "this_subset" ):W << Delete Formula;
+
+	step_name = "Delete column formula: W_data";
+	//Delete column formula: W_data
+	Data Table( "this_subset" ):W_data << Delete Formula;
+
+	step_name = "Delete column formula: W_data_lag";
+	//Delete column formula: W_data_lag
+	Data Table( "this_subset" ):W_data_lag << Delete Formula;
+
+	step_name = "Delete columns";
+	//Delete columns
+	Data Table( "this_subset" ) << Delete Columns(
+		:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
+	);
+
+	step_name = "Try to fill data in X";
+	//Try to fill data in X
+	Names Default To Here( 1 );
+	dt = Data Table( "this_subset" );
+	last_X = .;
+	If( 1 == 1,
+		For Each Row(
+			dt,
+			If( Row() > 0,
+				this_X = :X[Row()];
+				If( !Is Missing( this_X ),
+					last_X = this_X
+				);
+				If( Is Missing( this_X ),
+					:X = last_X
+				);
+			)
+		)
+	);;
+
+	step_name = "Try to fill data in Y";
+	//Try to fill data in Y
+	Names Default To Here( 1 );
+	dt = Data Table( "this_subset" );
+	last_Y = .;
+	If( 1 == 1,
+		For Each Row(
+			dt,
+			If( Row() > 0,
+				this_Y = :Y[Row()];
+				If( !Is Missing( this_Y ),
+					last_Y = this_Y
+				);
+				If( Is Missing( this_Y ),
+					:Y = last_Y
+				);
+			)
+		)
+	);;
+	
+	step_name = "Try to fill data in W";
+	//Try to fill data in W
+	Names Default To Here( 1 );
+	dt = Data Table( "this_subset" );
+	last_W = .;
+	If( 1 == 1,
+		For Each Row(
+			dt,
+			If( Row() > 0,
+				this_W = :W[Row()];
+				If( !Is Missing( this_W ),
+					last_W = this_W
+				);
+				If( Is Missing( this_W ),
+					:W = last_W
+				);
+			)
+		)
+	);;
+
+	step_name = "Rename data table: this_subset → Subset_site1";
+	//Rename data table: this_subset → Subset_site1
+	Data Table( "this_subset" ) << Set Name(this_table_name );
+
+
+);
+/////////////////////////////////////////////////
 
 file_process_workflow_v1_no_QL_FT=function({this_file_name}, 
 
@@ -336,6 +566,91 @@ Show("This is called to operate on file name: ",this_file_name);
     //Delete selected rows
     Data Table( "Source_table" ) << Select where( Is Missing( :site_num ) ) <<
     Delete Rows;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// code here to handle various site counts.
+// The PIR will be the first 1,2,3 or 4 rows.
+
+
+
+	//just brute force down the entire site_num col and look for each site.  In theory it could be any combination
+	dt = Data Table( "Source_table" );
+	site1_found = 0;
+	site2_found = 0;
+	site3_found = 0;
+	site4_found = 0;
+
+	
+	Show(dt:site_num[1]);	
+	Show(dt:site_num[2]);	
+	Show(dt:site_num[3]);	
+	Show(dt:site_num[4]);	
+	
+	For (i=1,i<5, i++,
+		Show(i);
+		//check the first line
+		If( dt:Record_type[i]=="PIR", 
+			Show("this line is a PIR");
+			if(dt:site_num[i]=="1",
+				site1_found=1; 
+				Show("site 1 found");
+			);
+			if(dt:site_num[i]=="2",
+				site2_found=1; 
+				Show("site 2 found");
+			);
+			if(dt:site_num[i]=="3",
+				site3_found=1; 
+				Show("site 3 found");
+			);
+			if(dt:site_num[i]=="4",
+				site4_found=1; 
+				Show("site 4 found");
+			);
+			,
+			Show(" this line is not a PIR");
+		);
+	);
+
+
+
+	//this will chop up the table into 1,2,3 or 4 tables, called "site_num=1" for instance
+	step_name = "Subset data table";
+		//Subset data table
+		Data Table( "Source_table" ) << Subset(
+			Keep by columns( 1 ),
+			By( :site_num ),
+			All rows,
+			Selected columns only( 0 )
+		);
+		
+		
+	step_name = "Close the big table";
+	//Close the big table
+	Close( Data Table( "Source_table" ), NoSave );
+
+	if ( site1_found==1,
+		Show ("do site 1");
+		Process_XYW("site_num=1");
+		);
+
+	if ( site2_found==1,
+		Show ("do site 2");
+		Process_XYW("site_num=2");
+		);
+		
+	if ( site3_found==1,
+		Show ("do site 3");
+		Process_XYW("site_num=3");
+		);
+		
+	if ( site4_found==1,
+		Show ("do site 4");
+		Process_XYW("site_num=4");
+	);
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     step_name = "Make subset tables by site";
     //Make subset tables by site
