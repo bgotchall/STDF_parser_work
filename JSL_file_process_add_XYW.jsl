@@ -1,0 +1,1284 @@
+﻿//   eventually add the //! to the first line to have it execute upon opening, and add a "close()" at the end.
+//////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+
+
+Names Default To Here( 1 );
+
+
+file_process_workflow_v1_no_QL_FT=function({}, 
+    step_name = "Import text file: input_raw_file.csv";
+    //Import text file: input_raw_file.csv
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/Probe Datalogs/input_raw_file.csv",
+    	columns(
+    		New Column( "DATA_FILE", Character, "Nominal" ),
+    		New Column( "recordNumber", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "test_num", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "head_num", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "site_num", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "test_flg", Character, "Nominal" ),
+    		New Column( "parm_flg", Character, "Nominal" ),
+    		New Column( "result", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "completeResultNotValid", Character, "Nominal" ),
+    		New Column( "test_txt", Character, "Nominal" ),
+    		New Column( "alarm_id", Character, "Nominal" ),
+    		New Column( "opt_flag", Character, "Nominal" ),
+    		New Column( "res_scal", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "llm_scal", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "hlm_scal", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "lo_limit", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "hi_limit", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "units", Character, "Nominal" ),
+    		New Column( "c_resfmt", Character, "Nominal" ),
+    		New Column( "c_llmfmt", Character, "Nominal" ),
+    		New Column( "c_hlmfmt", Character, "Nominal" ),
+    		New Column( "lo_spec", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "hi_spec", Numeric, "Continuous", Format( "Best", 12 ) ),
+    		New Column( "testFailed", Character, "Nominal" ),
+    		New Column( "testFailedInvalid", Character, "Nominal" ),
+    		New Column( "resultNotValid", Character, "Nominal" ),
+    		New Column( "scaleError", Character, "Nominal" ),
+    		New Column( "driftError", Character, "Nominal" ),
+    		New Column( "oscillationDetected", Character, "Nominal" ),
+    		New Column( "alarmDetected", Character, "Nominal" ),
+    		New Column( "resultNotReliable", Character, "Nominal" ),
+    		New Column( "testNotExecuted", Character, "Nominal" ),
+    		New Column( "testAborted", Character, "Nominal" ),
+    		New Column( "timeoutOccurred", Character, "Nominal" )
+    	),
+    	Import Settings(
+    		End Of Line( CRLF, CR, LF ),
+    		End Of Field( Comma, CSV( 1 ) ),
+    		Strip Quotes( 1 ),
+    		Use Apostrophe as Quotation Mark( 0 ),
+    		Use Regional Settings( 0 ),
+    		Scan Whole File( 1 ),
+    		Treat empty columns as numeric( 0 ),
+    		CompressNumericColumns( 0 ),
+    		CompressCharacterColumns( 0 ),
+    		CompressAllowListCheck( 0 ),
+    		Labels( 1 ),
+    		Column Names Start( 1 ),
+    		First Named Column( 1 ),
+    		Data Starts( 2 ),
+    		Lines To Read( "All" ),
+    		Year Rule( "20xx" )
+    	)
+    );
+
+    step_name = "Open Data Table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp";
+    //Open Data Table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/PTR_plus/dummy_PTR_plus.jmp"
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "FF_D1_0C_PTR_plus" ) << Clear Row States;
+
+    step_name = "Clean up imported CSV file";
+    //Clean up imported CSV file
+
+    step_name = "Rename data table: input_raw_file.csv → Source_table";
+    //Rename data table: input_raw_file.csv → Source_table
+    Data Table( "input_raw_file" ) << Set Name( "Source_table" );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "Source_table" ) << Delete Columns(
+    	:head_num, :test_flg, :parm_flg, :alarm_id, :opt_flag, :res_scal, :llm_scal,
+    	:hlm_scal, :c_resfmt, :c_llmfmt, :c_hlmfmt, :lo_spec, :hi_spec, :part_flg,
+    	:num_test, :hard_bin, :soft_bin, :x_coord, :y_coord, :test_t, :part_id,
+    	:part_txt, :part_fix
+    );
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "Source_table" ) << Text to Columns(
+    	columns( :test_txt ),
+    	Delimiters( ":" )
+    );
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "Source_table" ) << Text to Columns(
+    	columns( :test_txt 2 ),
+    	Delimiters( "[" )
+    );
+
+    step_name = "Delete column: test_txt 2 2";
+    //Delete column: test_txt 2 2
+    Data Table( "Source_table" ) << Delete Columns( :test_txt 2 2 );
+
+    step_name = "Delete column: test_txt 2";
+    //Delete column: test_txt 2
+    Data Table( "Source_table" ) << Delete Columns( :test_txt 2 );
+
+    step_name = "Delete column: test_txt";
+    //Delete column: test_txt
+    Data Table( "Source_table" ) << Delete Columns( :test_txt );
+
+    step_name = "Change column name: test_txt 1 → Test_name";
+    //Change column name: test_txt 1 → Test_name
+    Data Table( "Source_table" ):test_txt 1 << Set Name( "Test_name" );
+
+    step_name = "Change column name: test_txt 2 1 → Pin_name";
+    //Change column name: test_txt 2 1 → Pin_name
+    Data Table( "Source_table" ):test_txt 2 1 << Set Name( "Pin_name" );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "kill the extra DTR";
+    //kill the extra DTR
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :text_dat, "SDC300" ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :text_dat, "SDC300" ) ) <<
+    Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :text_dat, "ZEUS" ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :text_dat, "ZEUS" ) ) <<
+    Delete Rows;
+
+    step_name = "Change column display width: text_dat";
+    //Change column display width: text_dat
+    Data Table( "Source_table" ):text_dat << Set Display Width( 187 );
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :text_dat, "BGA321" ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :text_dat, "BGA321" ) ) <<
+    Delete Rows;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Correct the site_num column so that lot_num readout has a site_num";
+    //Correct the site_num column so that lot_num readout has a site_num
+
+    step_name =
+"start figuring out the correct site number for the lot number read outs";
+    //start figuring out the correct site number for the lot number read outs
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "EFUSE_OTP1" ) | :Record_type == "DTR"
+    );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "EFUSE_OTP1" ) | :Record_type == "DTR"
+    ) << Subset(
+    	Output Table( "Source_table_just_otp_tests" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Change column name: text_dat → efuse_lot_data";
+    //Change column name: text_dat → efuse_lot_data
+    Data Table( "Source_table_just_otp_tests" ):text_dat << Set Name( "efuse_lot_data" );
+
+    step_name = "New column: count_cluster";
+    //New column: count_cluster
+    Data Table( "Source_table_just_otp_tests" ) <<
+    New Column( "count_cluster", Numeric, "Continuous", Format( "Best", 12 ) );
+
+    step_name = "Change column formula: count_cluster";
+    //Change column formula: count_cluster
+    Data Table( "Source_table_just_otp_tests" ):count_cluster <<
+    Set Formula( !Is Missing( :efuse_lot_data ) );
+
+    step_name = "New column: flag_sums";
+    //New column: flag_sums
+    Data Table( "Source_table_just_otp_tests" ) <<
+    New Column( "flag_sums", Numeric, "Continuous", Format( "Best", 12 ) );
+
+    step_name = "Change column formula: flag_sums";
+    //Change column formula: flag_sums
+    Data Table( "Source_table_just_otp_tests" ):flag_sums <<
+    Set Formula(
+    	Lag( :count_cluster, 0 ) + Lag( :count_cluster, -1 ) + Lag( :count_cluster, -2 )
+    	 + Lag( :count_cluster, -3 )
+    );
+
+    step_name = "New column: cluster_size";
+    //New column: cluster_size
+    Data Table( "Source_table_just_otp_tests" ) <<
+    New Column( "cluster_size", Numeric, "Continuous", Format( "Best", 12 ) );
+
+    step_name = "Change column formula: cluster_size";
+    //Change column formula: cluster_size
+    Data Table( "Source_table_just_otp_tests" ):cluster_size <<
+    Set Formula(
+    	Maximum(
+    		Lag( :flag_sums, 0 ),
+    		Lag( :flag_sums, 1 ),
+    		Lag( :flag_sums, 2 ),
+    		Lag( :flag_sums, 3 )
+    	)
+    );
+
+    step_name = "New column: cluster_index";
+    //New column: cluster_index
+    Data Table( "Source_table_just_otp_tests" ) <<
+    New Column( "cluster_index", Numeric, "Continuous", Format( "Best", 12 ) );
+
+    step_name = "Change column formula: cluster_index";
+    //Change column formula: cluster_index
+    Data Table( "Source_table_just_otp_tests" ):cluster_index <<
+    Set Formula( :cluster_size - :flag_sums );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "New column: row_to_pull";
+    //New column: row_to_pull
+    Data Table( "Source_table_just_otp_tests" ) <<
+    New Column( "row_to_pull", Numeric, "Continuous", Format( "Best", 12 ) );
+
+    step_name = "Change column formula: row_to_pull";
+    //Change column formula: row_to_pull
+    Data Table( "Source_table_just_otp_tests" ):row_to_pull <<
+    Set Formula( 2 * :cluster_index + :cluster_size );
+
+    step_name = "New column: site_num_pulled";
+    //New column: site_num_pulled
+    Data Table( "Source_table_just_otp_tests" ) <<
+    New Column( "site_num_pulled", Numeric, "Continuous", Format( "Best", 12 ) );
+
+    step_name = "Change column formula: site_num_pulled";
+    //Change column formula: site_num_pulled
+    Data Table( "Source_table_just_otp_tests" ):site_num_pulled <<
+    Set Formula( Lag( :site_num, -1 * :row_to_pull ) );
+
+    step_name = "Change column formula: site_num_pulled";
+    //Change column formula: site_num_pulled
+    Data Table( "Source_table_just_otp_tests" ):site_num_pulled <<
+    Set Formula( Lag( :site_num, -1 * :row_to_pull ) );
+
+    step_name = "New column: site_num_new";
+    //New column: site_num_new
+    Data Table( "Source_table_just_otp_tests" ) <<
+    New Column( "site_num_new", Numeric, "Continuous", Format( "Best", 12 ) );
+
+    step_name = "Change column formula: site_num_new";
+    //Change column formula: site_num_new
+    Data Table( "Source_table_just_otp_tests" ):site_num_new <<
+    Set Formula( If( Is Missing( :site_num ), :site_num_new, :site_num ) );
+
+    step_name = "Change column formula: site_num_new";
+    //Change column formula: site_num_new
+    Data Table( "Source_table_just_otp_tests" ):site_num_new <<
+    Set Formula( If( Is Missing( :site_num ), :site_num_pulled, :site_num ) );
+
+    step_name = "Change column formula: site_num_new";
+    //Change column formula: site_num_new
+    Data Table( "Source_table_just_otp_tests" ):site_num_new <<
+    Set Formula( If( Is Missing( :site_num ), :site_num_pulled, :site_num ) );
+
+    step_name = "Move selected column: site_num_new";
+    //Move selected column: site_num_new
+    Data Table( "Source_table_just_otp_tests" ) <<
+    Move Selected Columns( {:site_num_new}, after( :site_num ) );
+
+    step_name = "Wait for formulas to evaluate";
+    //Wait for formulas to evaluate
+    Data Table( "Source_table_just_otp_tests" ) << RunFormulas;
+
+    step_name = "Delete column formula: site_num_new";
+    //Delete column formula: site_num_new
+    Data Table( "Source_table_just_otp_tests" ):site_num_new << Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "Source_table_just_otp_tests" ) <<
+    Delete Columns(
+    	:count_cluster, :flag_sums, :cluster_size, :cluster_index, :row_to_pull,
+    	:site_num_pulled
+    );
+
+    step_name = "Delete column: site_num";
+    //Delete column: site_num
+    Data Table( "Source_table_just_otp_tests" ) << Delete Columns( :site_num );
+
+    step_name = "Change column name: site_num_new → site_num";
+    //Change column name: site_num_new → site_num
+    Data Table( "Source_table_just_otp_tests" ):site_num_new << Set Name( "site_num" );
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Source_table" ) << Update(
+    	With( Data Table( "Source_table_just_otp_tests" ) ),
+    	Match Columns( :stdf_record_index = :stdf_record_index ),
+    	Add Columns from Update Table( None ),
+    	Replace Columns in Main Table( :site_num )
+    );
+
+    step_name = "Close Data Table: Source_table_just_otp_tests";
+    //Close Data Table: Source_table_just_otp_tests
+    Close( Data Table( "Source_table_just_otp_tests" ), NoSave );
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Is Missing( :site_num ) );
+
+    step_name = "Save data table: Source_table_interim_save.jmp";
+    //Save data table: Source_table_interim_save.jmp
+    Data Table( "Source_table" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/JMP_stuff/working_folder/Source_table.jmp"
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Is Missing( :site_num ) ) <<
+    Delete Rows;
+
+    step_name = "Make subset tables by site";
+    //Make subset tables by site
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Subset(
+    	Output Table( "site_subsets.jmp" ),
+    	Keep by columns( 1 ),
+    	By( :site_num ),
+    	All rows,
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Rename data table: site_subsets.jmp 1 → Subset_site1";
+    //Rename data table: site_subsets.jmp 1 → Subset_site1
+    Data Table( "site_subsets.jmp 1" ) << Set Name( "Subset_site1" );
+
+    step_name = "Rename data table: site_subsets.jmp 2 → Subset_site2";
+    //Rename data table: site_subsets.jmp 2 → Subset_site2
+    Data Table( "site_subsets.jmp 2" ) << Set Name( "Subset_site2" );
+
+    step_name = "Rename data table: site_subsets.jmp 3 → Subset_site3";
+    //Rename data table: site_subsets.jmp 3 → Subset_site3
+    Data Table( "site_subsets.jmp 3" ) << Set Name( "Subset_site3" );
+
+    step_name = "Rename data table: site_subsets.jmp 4 → Subset_site4";
+    //Rename data table: site_subsets.jmp 4 → Subset_site4
+    Data Table( "site_subsets.jmp 4" ) << Set Name( "Subset_site4" );
+
+    step_name = "Close the big table";
+    //Close the big table
+    Close( Data Table( "Source_table" ), NoSave );
+
+    step_name = "Site1";
+    //Site1
+
+    step_name = "Rename data table: Subset_site1 → this_subset";
+    //Rename data table: Subset_site1 → this_subset
+    Data Table( "Subset_site1" ) << Set Name( "this_subset" );
+
+    step_name = "New column: X_data";
+    //New column: X_data
+    Data Table( "this_subset" ) << New Column( "X_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Xcoord" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "new column: X_data_lag";
+    //new column: X_data_lag
+    Data Table( "this_subset" ) << New Column( "X_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :X_data, -77 ) )
+    );
+
+    step_name = "New column: X";
+    //New column: X
+    Data Table( "this_subset" ) << New Column( "X",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :X_data_lag )
+    );
+
+    step_name = "New column: Y_data";
+    //New column: Y_data
+    Data Table( "this_subset" ) << New Column( "Y_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Ycoord" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "New column: Y_data_lag";
+    //New column: Y_data_lag
+    Data Table( "this_subset" ) << New Column( "Y_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :Y_data, -78 ) )
+    );
+
+    step_name = "New column: Y";
+    //New column: Y
+    Data Table( "this_subset" ) << New Column( "Y",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :Y_data_lag )
+    );
+
+    step_name = "New column: W_data";
+    //New column: W_data
+    Data Table( "this_subset" ) << New Column( "W_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Wafer_Num" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "New column: W_data_lag";
+    //New column: W_data_lag
+    Data Table( "this_subset" ) << New Column( "W_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :W_data, -79 ) )
+    );
+
+    step_name = "New column: W";
+    //New column: W
+    Data Table( "this_subset" ) << New Column( "W",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :W_data_lag )
+    );
+
+    step_name = "Wait for formulas to evaluate";
+    //Wait for formulas to evaluate
+    Data Table( "this_subset" ) << RunFormulas;
+
+    step_name = "Delete column formula: X";
+    //Delete column formula: X
+    Data Table( "this_subset" ):X << Delete Formula;
+
+    step_name = "Delete column formula: X_data";
+    //Delete column formula: X_data
+    Data Table( "this_subset" ):X_data << Delete Formula;
+
+    step_name = "Delete column formula: X_data_lag";
+    //Delete column formula: X_data_lag
+    Data Table( "this_subset" ):X_data_lag << Delete Formula;
+
+    step_name = "Delete column formula: Y";
+    //Delete column formula: Y
+    Data Table( "this_subset" ):Y << Delete Formula;
+
+    step_name = "Delete column formula: Y_data";
+    //Delete column formula: Y_data
+    Data Table( "this_subset" ):Y_data << Delete Formula;
+
+    step_name = "Delete column formula: Y_data_lag";
+    //Delete column formula: Y_data_lag
+    Data Table( "this_subset" ):Y_data_lag << Delete Formula;
+
+    step_name = "Delete column formula: W";
+    //Delete column formula: W
+    Data Table( "this_subset" ):W << Delete Formula;
+
+    step_name = "Delete column formula: W_data";
+    //Delete column formula: W_data
+    Data Table( "this_subset" ):W_data << Delete Formula;
+
+    step_name = "Delete column formula: W_data_lag";
+    //Delete column formula: W_data_lag
+    Data Table( "this_subset" ):W_data_lag << Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "this_subset" ) << Delete Columns(
+    	:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
+    );
+
+    step_name = "Try to fill data in X";
+    //Try to fill data in X
+    Names Default To Here( 1 );
+    dt = Data Table( "this_subset" );
+    last_X = .;
+    If( 1 == 1,
+    	For Each Row(
+    		dt,
+    		If( Row() > 0,
+    			this_X = :X[Row()];
+    			If( !Is Missing( this_X ),
+    				last_X = this_X
+    			);
+    			If( Is Missing( this_X ),
+    				:X = last_X
+    			);
+    		)
+    	)
+    );;
+
+    step_name = "Try to fill data in Y";
+    //Try to fill data in Y
+    Names Default To Here( 1 );
+    dt = Data Table( "this_subset" );
+    last_Y = .;
+    If( 1 == 1,
+    	For Each Row(
+    		dt,
+    		If( Row() > 0,
+    			this_Y = :Y[Row()];
+    			If( !Is Missing( this_Y ),
+    				last_Y = this_Y
+    			);
+    			If( Is Missing( this_Y ),
+    				:Y = last_Y
+    			);
+    		)
+    	)
+    );;
+
+    step_name = "Rename data table: this_subset → Subset_site1";
+    //Rename data table: this_subset → Subset_site1
+    Data Table( "this_subset" ) << Set Name( "Subset_site1" );
+
+    step_name = "Site 2 new";
+    //Site 2 new
+
+    step_name = "Rename data table: Subset_site2 → this_subset";
+    //Rename data table: Subset_site2 → this_subset
+    Data Table( "Subset_site2" ) << Set Name( "this_subset" );
+
+    step_name = "New column: X_data";
+    //New column: X_data
+    Data Table( "this_subset" ) << New Column( "X_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Xcoord" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "new column: X_data_lag";
+    //new column: X_data_lag
+    Data Table( "this_subset" ) << New Column( "X_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :X_data, -77 ) )
+    );
+
+    step_name = "New column: X";
+    //New column: X
+    Data Table( "this_subset" ) << New Column( "X",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :X_data_lag )
+    );
+
+    step_name = "New column: Y_data";
+    //New column: Y_data
+    Data Table( "this_subset" ) << New Column( "Y_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Ycoord" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "New column: Y_data_lag";
+    //New column: Y_data_lag
+    Data Table( "this_subset" ) << New Column( "Y_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :Y_data, -78 ) )
+    );
+
+    step_name = "New column: Y";
+    //New column: Y
+    Data Table( "this_subset" ) << New Column( "Y",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :Y_data_lag )
+    );
+
+    step_name = "New column: W_data";
+    //New column: W_data
+    Data Table( "this_subset" ) << New Column( "W_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Wafer_Num" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "New column: W_data_lag";
+    //New column: W_data_lag
+    Data Table( "this_subset" ) << New Column( "W_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :W_data, -79 ) )
+    );
+
+    step_name = "New column: W";
+    //New column: W
+    Data Table( "this_subset" ) << New Column( "W",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :W_data_lag )
+    );
+
+    step_name = "Wait for formulas to evaluate";
+    //Wait for formulas to evaluate
+    Data Table( "this_subset" ) << RunFormulas;
+
+    step_name = "Delete column formula: X";
+    //Delete column formula: X
+    Data Table( "this_subset" ):X << Delete Formula;
+
+    step_name = "Delete column formula: X_data";
+    //Delete column formula: X_data
+    Data Table( "this_subset" ):X_data << Delete Formula;
+
+    step_name = "Delete column formula: X_data_lag";
+    //Delete column formula: X_data_lag
+    Data Table( "this_subset" ):X_data_lag << Delete Formula;
+
+    step_name = "Delete column formula: Y";
+    //Delete column formula: Y
+    Data Table( "this_subset" ):Y << Delete Formula;
+
+    step_name = "Delete column formula: Y_data";
+    //Delete column formula: Y_data
+    Data Table( "this_subset" ):Y_data << Delete Formula;
+
+    step_name = "Delete column formula: Y_data_lag";
+    //Delete column formula: Y_data_lag
+    Data Table( "this_subset" ):Y_data_lag << Delete Formula;
+
+    step_name = "Delete column formula: W";
+    //Delete column formula: W
+    Data Table( "this_subset" ):W << Delete Formula;
+
+    step_name = "Delete column formula: W_data";
+    //Delete column formula: W_data
+    Data Table( "this_subset" ):W_data << Delete Formula;
+
+    step_name = "Delete column formula: W_data_lag";
+    //Delete column formula: W_data_lag
+    Data Table( "this_subset" ):W_data_lag << Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "this_subset" ) << Delete Columns(
+    	:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
+    );
+
+    step_name = "Try to fill data in X";
+    //Try to fill data in X
+    Names Default To Here( 1 );
+    dt = Data Table( "this_subset" );
+    last_X = .;
+    If( 1 == 1,
+    	For Each Row(
+    		dt,
+    		If( Row() > 0,
+    			this_X = :X[Row()];
+    			If( !Is Missing( this_X ),
+    				last_X = this_X
+    			);
+    			If( Is Missing( this_X ),
+    				:X = last_X
+    			);
+    		)
+    	)
+    );;
+
+    step_name = "Try to fill data in Y";
+    //Try to fill data in Y
+    Names Default To Here( 1 );
+    dt = Data Table( "this_subset" );
+    last_Y = .;
+    If( 1 == 1,
+    	For Each Row(
+    		dt,
+    		If( Row() > 0,
+    			this_Y = :Y[Row()];
+    			If( !Is Missing( this_Y ),
+    				last_Y = this_Y
+    			);
+    			If( Is Missing( this_Y ),
+    				:Y = last_Y
+    			);
+    		)
+    	)
+    );;
+
+    step_name = "Rename data table: this_subset → Subset_site2";
+    //Rename data table: this_subset → Subset_site2
+    Data Table( "this_subset" ) << Set Name( "Subset_site2" );
+
+    step_name = "Site 3 new";
+    //Site 3 new
+
+    step_name = "Rename data table: Subset_site3 → this_subset";
+    //Rename data table: Subset_site3 → this_subset
+    Data Table( "Subset_site3" ) << Set Name( "this_subset" );
+
+    step_name = "New column: X_data";
+    //New column: X_data
+    Data Table( "this_subset" ) << New Column( "X_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Xcoord" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "new column: X_data_lag";
+    //new column: X_data_lag
+    Data Table( "this_subset" ) << New Column( "X_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :X_data, -77 ) )
+    );
+
+    step_name = "New column: X";
+    //New column: X
+    Data Table( "this_subset" ) << New Column( "X",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :X_data_lag )
+    );
+
+    step_name = "New column: Y_data";
+    //New column: Y_data
+    Data Table( "this_subset" ) << New Column( "Y_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Ycoord" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "New column: Y_data_lag";
+    //New column: Y_data_lag
+    Data Table( "this_subset" ) << New Column( "Y_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :Y_data, -78 ) )
+    );
+
+    step_name = "New column: Y";
+    //New column: Y
+    Data Table( "this_subset" ) << New Column( "Y",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :Y_data_lag )
+    );
+
+    step_name = "New column: W_data";
+    //New column: W_data
+    Data Table( "this_subset" ) << New Column( "W_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Wafer_Num" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "New column: W_data_lag";
+    //New column: W_data_lag
+    Data Table( "this_subset" ) << New Column( "W_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :W_data, -79 ) )
+    );
+
+    step_name = "New column: W";
+    //New column: W
+    Data Table( "this_subset" ) << New Column( "W",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :W_data_lag )
+    );
+
+    step_name = "Wait for formulas to evaluate";
+    //Wait for formulas to evaluate
+    Data Table( "this_subset" ) << RunFormulas;
+
+    step_name = "Delete column formula: X";
+    //Delete column formula: X
+    Data Table( "this_subset" ):X << Delete Formula;
+
+    step_name = "Delete column formula: X_data";
+    //Delete column formula: X_data
+    Data Table( "this_subset" ):X_data << Delete Formula;
+
+    step_name = "Delete column formula: X_data_lag";
+    //Delete column formula: X_data_lag
+    Data Table( "this_subset" ):X_data_lag << Delete Formula;
+
+    step_name = "Delete column formula: Y";
+    //Delete column formula: Y
+    Data Table( "this_subset" ):Y << Delete Formula;
+
+    step_name = "Delete column formula: Y_data";
+    //Delete column formula: Y_data
+    Data Table( "this_subset" ):Y_data << Delete Formula;
+
+    step_name = "Delete column formula: Y_data_lag";
+    //Delete column formula: Y_data_lag
+    Data Table( "this_subset" ):Y_data_lag << Delete Formula;
+
+    step_name = "Delete column formula: W";
+    //Delete column formula: W
+    Data Table( "this_subset" ):W << Delete Formula;
+
+    step_name = "Delete column formula: W_data";
+    //Delete column formula: W_data
+    Data Table( "this_subset" ):W_data << Delete Formula;
+
+    step_name = "Delete column formula: W_data_lag";
+    //Delete column formula: W_data_lag
+    Data Table( "this_subset" ):W_data_lag << Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "this_subset" ) << Delete Columns(
+    	:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
+    );
+
+    step_name = "Try to fill data in X";
+    //Try to fill data in X
+    Names Default To Here( 1 );
+    dt = Data Table( "this_subset" );
+    last_X = .;
+    If( 1 == 1,
+    	For Each Row(
+    		dt,
+    		If( Row() > 0,
+    			this_X = :X[Row()];
+    			If( !Is Missing( this_X ),
+    				last_X = this_X
+    			);
+    			If( Is Missing( this_X ),
+    				:X = last_X
+    			);
+    		)
+    	)
+    );;
+
+    step_name = "Try to fill data in Y";
+    //Try to fill data in Y
+    Names Default To Here( 1 );
+    dt = Data Table( "this_subset" );
+    last_Y = .;
+    If( 1 == 1,
+    	For Each Row(
+    		dt,
+    		If( Row() > 0,
+    			this_Y = :Y[Row()];
+    			If( !Is Missing( this_Y ),
+    				last_Y = this_Y
+    			);
+    			If( Is Missing( this_Y ),
+    				:Y = last_Y
+    			);
+    		)
+    	)
+    );;
+
+    step_name = "Rename data table: this_subset → Subset_site3";
+    //Rename data table: this_subset → Subset_site3
+    Data Table( "this_subset" ) << Set Name( "Subset_site3" );
+
+    step_name = "Site 4 new";
+    //Site 4 new
+
+    step_name = "Rename data table: Subset_site4 → this_subset";
+    //Rename data table: Subset_site4 → this_subset
+    Data Table( "Subset_site4" ) << Set Name( "this_subset" );
+
+    step_name = "New column: X_data";
+    //New column: X_data
+    Data Table( "this_subset" ) << New Column( "X_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Xcoord" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "new column: X_data_lag";
+    //new column: X_data_lag
+    Data Table( "this_subset" ) << New Column( "X_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :X_data, -77 ) )
+    );
+
+    step_name = "New column: X";
+    //New column: X
+    Data Table( "this_subset" ) << New Column( "X",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :X_data_lag )
+    );
+
+    step_name = "New column: Y_data";
+    //New column: Y_data
+    Data Table( "this_subset" ) << New Column( "Y_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Ycoord" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "New column: Y_data_lag";
+    //New column: Y_data_lag
+    Data Table( "this_subset" ) << New Column( "Y_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :Y_data, -78 ) )
+    );
+
+    step_name = "New column: Y";
+    //New column: Y
+    Data Table( "this_subset" ) << New Column( "Y",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :Y_data_lag )
+    );
+
+    step_name = "New column: W_data";
+    //New column: W_data
+    Data Table( "this_subset" ) << New Column( "W_data",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula(
+    		If(
+    			:Pin_name == "Wafer_Num" & Contains(
+    				:Test_name,
+    				"EFUSE_OTP1_DEVICE_ID_READ"
+    			),
+    			:result,
+    			.
+    		)
+    	)
+    );
+
+    step_name = "New column: W_data_lag";
+    //New column: W_data_lag
+    Data Table( "this_subset" ) << New Column( "W_data_lag",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( Lag( :W_data, -79 ) )
+    );
+
+    step_name = "New column: W";
+    //New column: W
+    Data Table( "this_subset" ) << New Column( "W",
+    	Numeric,
+    	"Nominal",
+    	Format( "Best", 12 ),
+    	Formula( :W_data_lag )
+    );
+
+    step_name = "Wait for formulas to evaluate";
+    //Wait for formulas to evaluate
+    Data Table( "this_subset" ) << RunFormulas;
+
+    step_name = "Delete column formula: X";
+    //Delete column formula: X
+    Data Table( "this_subset" ):X << Delete Formula;
+
+    step_name = "Delete column formula: X_data";
+    //Delete column formula: X_data
+    Data Table( "this_subset" ):X_data << Delete Formula;
+
+    step_name = "Delete column formula: X_data_lag";
+    //Delete column formula: X_data_lag
+    Data Table( "this_subset" ):X_data_lag << Delete Formula;
+
+    step_name = "Delete column formula: Y";
+    //Delete column formula: Y
+    Data Table( "this_subset" ):Y << Delete Formula;
+
+    step_name = "Delete column formula: Y_data";
+    //Delete column formula: Y_data
+    Data Table( "this_subset" ):Y_data << Delete Formula;
+
+    step_name = "Delete column formula: Y_data_lag";
+    //Delete column formula: Y_data_lag
+    Data Table( "this_subset" ):Y_data_lag << Delete Formula;
+
+    step_name = "Delete column formula: W";
+    //Delete column formula: W
+    Data Table( "this_subset" ):W << Delete Formula;
+
+    step_name = "Delete column formula: W_data";
+    //Delete column formula: W_data
+    Data Table( "this_subset" ):W_data << Delete Formula;
+
+    step_name = "Delete column formula: W_data_lag";
+    //Delete column formula: W_data_lag
+    Data Table( "this_subset" ):W_data_lag << Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "this_subset" ) << Delete Columns(
+    	:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
+    );
+
+    step_name = "Try to fill data in X";
+    //Try to fill data in X
+    Names Default To Here( 1 );
+    dt = Data Table( "this_subset" );
+    last_X = .;
+    If( 1 == 1,
+    	For Each Row(
+    		dt,
+    		If( Row() > 0,
+    			this_X = :X[Row()];
+    			If( !Is Missing( this_X ),
+    				last_X = this_X
+    			);
+    			If( Is Missing( this_X ),
+    				:X = last_X
+    			);
+    		)
+    	)
+    );;
+
+    step_name = "Try to fill data in Y";
+    //Try to fill data in Y
+    Names Default To Here( 1 );
+    dt = Data Table( "this_subset" );
+    last_Y = .;
+    If( 1 == 1,
+    	For Each Row(
+    		dt,
+    		If( Row() > 0,
+    			this_Y = :Y[Row()];
+    			If( !Is Missing( this_Y ),
+    				last_Y = this_Y
+    			);
+    			If( Is Missing( this_Y ),
+    				:Y = last_Y
+    			);
+    		)
+    	)
+    );;
+
+    step_name = "Rename data table: this_subset → Subset_site4";
+    //Rename data table: this_subset → Subset_site4
+    Data Table( "this_subset" ) << Set Name( "Subset_site4" );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Subset_site1" ) << Concatenate(
+    	Data Table( "Subset_site2" ),
+    	Data Table( "Subset_site3" ),
+    	Data Table( "Subset_site4" ),
+    	Output Table( "concat_table" )
+    );
+
+    step_name = "Close Data Table: Subset_site1";
+    //Close Data Table: Subset_site1
+    Close( Data Table( "Subset_site1" ), NoSave );
+
+    step_name = "Close Data Table: Subset_site2";
+    //Close Data Table: Subset_site2
+    Close( Data Table( "Subset_site2" ), NoSave );
+
+    step_name = "Close Data Table: Subset_site3";
+    //Close Data Table: Subset_site3
+    Close( Data Table( "Subset_site3" ), NoSave );
+
+    step_name = "Close Data Table: Subset_site4";
+    //Close Data Table: Subset_site4
+    Close( Data Table( "Subset_site4" ), NoSave );
+
+    step_name = "Delete column: site_num 2";
+    //Delete column: site_num 2
+    Data Table( "concat_table" ) << Delete Columns( :site_num 2 );
+
+    step_name = "Sort data table";
+    //Sort data table
+    Data Table( "concat_table" ) << Sort(
+    	By( :stdf_record_index ),
+    	Replace Table,
+    	Order( Ascending )
+    );
+
+    step_name = "Join on the \!"Lot_list\!" metadata";
+    //Join on the "Lot_list" metadata
+
+    step_name = "Tack on the Wafer metadata from the lot_list table";
+    //Tack on the Wafer metadata from the lot_list table
+
+    step_name = "Change column formula: W";
+    //Change column formula: W
+    Data Table( "concat_table" ):W << Set Formula( :Probe_wafer );
+
+    step_name = "Wait for formulas to evaluate";
+    //Wait for formulas to evaluate
+    Data Table( "concat_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: W";
+    //Delete column formula: W
+    Data Table( "concat_table" ):W << Delete Formula;
+
+    step_name = "Save data table: concat_table_full.jmp";
+    //Save data table: concat_table_full.jmp
+    Data Table( "concat_table" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/Full_files/concat_table_full.jmp"
+    );
+);
+file_process_workflow_v1_no_QL_FT();
+

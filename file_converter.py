@@ -1,3 +1,4 @@
+############################################################################################################################
 # for now, just list all of the commands to run.  Eventually this should read the contents of an "input" directory
 # and process as needed.
 # the useage of stdf2text is # stdf2text SS_D5_115C.stdf > out.text    
@@ -99,11 +100,12 @@ if(1):
 
             #now attempt to zip the atdf:
             sys.stdout= orig_stdout
-            print("zipping ",out_file)
-            cmd = ['gzip', out_file ]                    
-            subprocess.run(cmd)
+          #  print("zipping ",out_file)
+          #  cmd = ['gzip', out_file ]                    
+          #  subprocess.run(cmd)
 
             #re-zip the input .stdf file:
+            sys.stdout= orig_stdout
             print("zipping ",in_file_unzip)
             cmd = ['gzip', in_file_unzip ]                     
             subprocess.run(cmd)
