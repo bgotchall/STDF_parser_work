@@ -7,83 +7,54 @@
 Names Default To Here( 1 );
 
 
-file_process_workflow_v1_no_QL_FT=function({}, 
-    step_name = "Import text file: input_raw_file.csv";
-    //Import text file: input_raw_file.csv
-    Open(
-    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/Probe Datalogs/input_raw_file.csv",
-    	columns(
-    		New Column( "DATA_FILE", Character, "Nominal" ),
-    		New Column( "recordNumber", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "test_num", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "head_num", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "site_num", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "test_flg", Character, "Nominal" ),
-    		New Column( "parm_flg", Character, "Nominal" ),
-    		New Column( "result", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "completeResultNotValid", Character, "Nominal" ),
-    		New Column( "test_txt", Character, "Nominal" ),
-    		New Column( "alarm_id", Character, "Nominal" ),
-    		New Column( "opt_flag", Character, "Nominal" ),
-    		New Column( "res_scal", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "llm_scal", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "hlm_scal", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "lo_limit", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "hi_limit", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "units", Character, "Nominal" ),
-    		New Column( "c_resfmt", Character, "Nominal" ),
-    		New Column( "c_llmfmt", Character, "Nominal" ),
-    		New Column( "c_hlmfmt", Character, "Nominal" ),
-    		New Column( "lo_spec", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "hi_spec", Numeric, "Continuous", Format( "Best", 12 ) ),
-    		New Column( "testFailed", Character, "Nominal" ),
-    		New Column( "testFailedInvalid", Character, "Nominal" ),
-    		New Column( "resultNotValid", Character, "Nominal" ),
-    		New Column( "scaleError", Character, "Nominal" ),
-    		New Column( "driftError", Character, "Nominal" ),
-    		New Column( "oscillationDetected", Character, "Nominal" ),
-    		New Column( "alarmDetected", Character, "Nominal" ),
-    		New Column( "resultNotReliable", Character, "Nominal" ),
-    		New Column( "testNotExecuted", Character, "Nominal" ),
-    		New Column( "testAborted", Character, "Nominal" ),
-    		New Column( "timeoutOccurred", Character, "Nominal" )
-    	),
-    	Import Settings(
-    		End Of Line( CRLF, CR, LF ),
-    		End Of Field( Comma, CSV( 1 ) ),
-    		Strip Quotes( 1 ),
-    		Use Apostrophe as Quotation Mark( 0 ),
-    		Use Regional Settings( 0 ),
-    		Scan Whole File( 1 ),
-    		Treat empty columns as numeric( 0 ),
-    		CompressNumericColumns( 0 ),
-    		CompressCharacterColumns( 0 ),
-    		CompressAllowListCheck( 0 ),
-    		Labels( 1 ),
-    		Column Names Start( 1 ),
-    		First Named Column( 1 ),
-    		Data Starts( 2 ),
-    		Lines To Read( "All" ),
-    		Year Rule( "20xx" )
-    	)
-    );
+file_process_workflow_v1_no_QL_FT=function({this_file_name}, 
+
+
+////////////////////////////////////////////
+
+Show("This is called to operate on file name: ",this_file_name);
+    
+//get the filename and path seperately:
+// location of input files:  C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\May_2024_work\PTR_plus
+// locatino of output files: C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\May_2024_work\Full_files
+
+	position_of_last_slash=Contains(this_file_name,"\",-1);			//should search backward from the end.
+	just_file_name=Substr(this_file_name,position_of_last_slash+1);
+	just_path=Substr(this_file_name,1,position_of_last_slash);
+	output_files_path="C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\May_2024_work\";  	//just a global at this point
+	
+	Wait(0);
+	Show(just_file_name);
+	Show(just_path);
+	
+	Just_file_name_no_suffix=Munger(just_file_name,1,".jmp","");
+	Show(Just_file_name_no_suffix);
+	
+	full_file_name=  output_files_path || "Full_files\" ||   Just_file_name_no_suffix || "_full.jmp";
+    Show(full_file_name);
+    //ptr_plus_file_name= output_files_path || "PTR_plus\" ||   Just_file_name_no_suffix  || "_PTR_plus.jmp";
+    //Show(ptr_plus_file_name);
+
+
+///////////////////////////////////
+
+   
 
     step_name = "Open Data Table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp";
     //Open Data Table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp
-    Open(
-    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/PTR_plus/dummy_PTR_plus.jmp"
-    );
+    dt=Open(    	this_file_name    );
+    Wait(0);
 
     step_name = "Clear row states";
     //Clear row states
-    Data Table( "FF_D1_0C_PTR_plus" ) << Clear Row States;
+    Data Table( dt ) << Clear Row States;
 
     step_name = "Clean up imported CSV file";
     //Clean up imported CSV file
 
     step_name = "Rename data table: input_raw_file.csv → Source_table";
     //Rename data table: input_raw_file.csv → Source_table
-    Data Table( "input_raw_file" ) << Set Name( "Source_table" );
+    Data Table( dt ) << Set Name( "Source_table" );
 
     step_name = "Clear row states";
     //Clear row states
@@ -1276,9 +1247,45 @@ file_process_workflow_v1_no_QL_FT=function({},
 
     step_name = "Save data table: concat_table_full.jmp";
     //Save data table: concat_table_full.jmp
-    Data Table( "concat_table" ) << Save(
-    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/Full_files/concat_table_full.jmp"
-    );
+  //  Data Table( "concat_table" ) << Save(
+   // 	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/Full_files/concat_table_full.jmp"
+  //  );
+    
+    // save the "full" file:
+    
+    Data Table( "concat_table" ) << Save(    	full_file_name    );
+    this_name= Just_file_name_no_suffix || "_full";
+    Close( Data Table( this_name ), NoSave );
+    
+    
+    
 );
-file_process_workflow_v1_no_QL_FT();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// open a simple text file, possibly created by another script on the fly, to get a list of files to operate on:
+file_list_table = Open( "lot_list_to_process_PTR_plus.csv", text );
+Wait(0);
+
+For Each Row(file_list_table,
+	my_row=Row();
+	Show (my_row);
+	this_file_name= :File_name[Row()];
+	Show ("this filename read is ", this_file_name);			//write to debugger?
+	file_process_workflow_v1_no_QL_FT(this_file_name);
+	
+);
+
+Close( Data Table( file_list_table ), NoSave );
+
+//Close();			#When this is ready to be deployed, this has to be there to close it when finished.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
 

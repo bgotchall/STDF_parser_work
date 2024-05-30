@@ -60,7 +60,7 @@ if(0):              #reference code graveyard.
     sys.stdout= orig_stdout
     print("Done.")
 
-if (0):     #this all works, but is limited.
+if (0):             #this all works, but is limited.
 
     file_list=['SS_D5_115C.stdf','demofile.stdf']
 
@@ -99,6 +99,7 @@ if(1):
             sys.stdout.close
 
             #now attempt to zip the atdf:
+            #I am not zipping now because for now I can't get a JMP script to unzip first.
             sys.stdout= orig_stdout
           #  print("zipping ",out_file)
           #  cmd = ['gzip', out_file ]                    
