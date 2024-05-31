@@ -8,19 +8,14 @@ Names Default To Here( 1 );
 
 ////////////////////////////////////////////////
 Process_XYW=function({this_table_name},
+//the "lag" values are magic numbers for now, but could be calculated dynamically.
 	Show("starting XYW sub");
 
 	
-	step_name = "Rename data table:"; 
-	//Rename data table: Subset_site1 → this_subset
-	Data Table( this_table_name ) << Set Name( "this_subset" );
+	Data Table( this_table_name ) << Set Name( "this_subset" );				//just do this because all of the commands reference this name, but fix later.
 
-	step_name = "New column: X_data";
 	//New column: X_data
-	Data Table( "this_subset" ) << New Column( "X_data",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "X_data",Numeric,"Nominal",Format( "Best", 12 ),
 		Formula(
 			If(
 				:Pin_name == "Xcoord" & Contains(
@@ -35,28 +30,19 @@ Process_XYW=function({this_table_name},
 
 	step_name = "new column: X_data_lag";
 	//new column: X_data_lag
-	Data Table( "this_subset" ) << New Column( "X_data_lag",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "X_data_lag",Numeric,"Nominal",Format( "Best", 12 ),
 		Formula( Lag( :X_data, -77 ) )
 	);
 
 	step_name = "New column: X";
 	//New column: X
-	Data Table( "this_subset" ) << New Column( "X",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "X",	Numeric,"Nominal",Format( "Best", 12 ),
 		Formula( :X_data_lag )
 	);
 
 	step_name = "New column: Y_data";
 	//New column: Y_data
-	Data Table( "this_subset" ) << New Column( "Y_data",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "Y_data",Numeric,"Nominal",Format( "Best", 12 ),
 		Formula(
 			If(
 				:Pin_name == "Ycoord" & Contains(
@@ -71,28 +57,19 @@ Process_XYW=function({this_table_name},
 
 	step_name = "New column: Y_data_lag";
 	//New column: Y_data_lag
-	Data Table( "this_subset" ) << New Column( "Y_data_lag",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "Y_data_lag",Numeric,"Nominal",Format( "Best", 12 ),
 		Formula( Lag( :Y_data, -78 ) )
 	);
 
 	step_name = "New column: Y";
 	//New column: Y
-	Data Table( "this_subset" ) << New Column( "Y",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "Y",	Numeric,"Nominal",Format( "Best", 12 ),
 		Formula( :Y_data_lag )
 	);
 
 	step_name = "New column: W_data";
 	//New column: W_data
-	Data Table( "this_subset" ) << New Column( "W_data",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "W_data",Numeric,"Nominal",Format( "Best", 12 ),
 		Formula(
 			If(
 				:Pin_name == "Wafer_Num" & Contains(
@@ -107,19 +84,13 @@ Process_XYW=function({this_table_name},
 
 	step_name = "New column: W_data_lag";
 	//New column: W_data_lag
-	Data Table( "this_subset" ) << New Column( "W_data_lag",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "W_data_lag",Numeric,"Nominal",Format( "Best", 12 ),
 		Formula( Lag( :W_data, -79 ) )
 	);
 
 	step_name = "New column: W";
 	//New column: W
-	Data Table( "this_subset" ) << New Column( "W",
-		Numeric,
-		"Nominal",
-		Format( "Best", 12 ),
+	Data Table( "this_subset" ) << New Column( "W",Numeric,	"Nominal",Format( "Best", 12 ),
 		Formula( :W_data_lag )
 	);
 
@@ -235,7 +206,7 @@ Process_XYW=function({this_table_name},
 
 
 );
-/////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 file_process_workflow_v1_no_QL_FT=function({this_file_name}, 
 
@@ -571,9 +542,7 @@ Show("This is called to operate on file name: ",this_file_name);
 // code here to handle various site counts.
 // The PIR will be the first 1,2,3 or 4 rows.
 
-
-
-	//just brute force down the entire site_num col and look for each site.  In theory it could be any combination
+	
 	dt = Data Table( "Source_table" );
 	site1_found = 0;
 	site2_found = 0;
@@ -632,907 +601,63 @@ Show("This is called to operate on file name: ",this_file_name);
 	if ( site1_found==1,
 		Show ("do site 1");
 		Process_XYW("site_num=1");
+	,
+		New Table( "site_num=1" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
 		);
 
 	if ( site2_found==1,
 		Show ("do site 2");
 		Process_XYW("site_num=2");
+	,
+		New Table( "site_num=2" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
 		);
 		
 	if ( site3_found==1,
 		Show ("do site 3");
 		Process_XYW("site_num=3");
+	,
+		New Table( "site_num=3" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
 		);
 		
 	if ( site4_found==1,
 		Show ("do site 4");
 		Process_XYW("site_num=4");
+	,
+		New Table( "site_num=4" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
 	);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    step_name = "Make subset tables by site";
-    //Make subset tables by site
-
-    step_name = "Subset data table";
-    //Subset data table
-    Data Table( "Source_table" ) << Subset(
-    	Output Table( "site_subsets.jmp" ),
-    	Keep by columns( 1 ),
-    	By( :site_num ),
-    	All rows,
-    	Selected columns only( 0 )
-    );
-
-    step_name = "Rename data table: site_subsets.jmp 1 → Subset_site1";
-    //Rename data table: site_subsets.jmp 1 → Subset_site1
-    Data Table( "site_subsets.jmp 1" ) << Set Name( "Subset_site1" );
-
-    step_name = "Rename data table: site_subsets.jmp 2 → Subset_site2";
-    //Rename data table: site_subsets.jmp 2 → Subset_site2
-    Data Table( "site_subsets.jmp 2" ) << Set Name( "Subset_site2" );
-
-    step_name = "Rename data table: site_subsets.jmp 3 → Subset_site3";
-    //Rename data table: site_subsets.jmp 3 → Subset_site3
-    Data Table( "site_subsets.jmp 3" ) << Set Name( "Subset_site3" );
-
-    step_name = "Rename data table: site_subsets.jmp 4 → Subset_site4";
-    //Rename data table: site_subsets.jmp 4 → Subset_site4
-    Data Table( "site_subsets.jmp 4" ) << Set Name( "Subset_site4" );
-
-    step_name = "Close the big table";
-    //Close the big table
-    Close( Data Table( "Source_table" ), NoSave );
-
-    step_name = "Site1";
-    //Site1
-
-    step_name = "Rename data table: Subset_site1 → this_subset";
-    //Rename data table: Subset_site1 → this_subset
-    Data Table( "Subset_site1" ) << Set Name( "this_subset" );
-
-    step_name = "New column: X_data";
-    //New column: X_data
-    Data Table( "this_subset" ) << New Column( "X_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Xcoord" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "new column: X_data_lag";
-    //new column: X_data_lag
-    Data Table( "this_subset" ) << New Column( "X_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :X_data, -77 ) )
-    );
-
-    step_name = "New column: X";
-    //New column: X
-    Data Table( "this_subset" ) << New Column( "X",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :X_data_lag )
-    );
-
-    step_name = "New column: Y_data";
-    //New column: Y_data
-    Data Table( "this_subset" ) << New Column( "Y_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Ycoord" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "New column: Y_data_lag";
-    //New column: Y_data_lag
-    Data Table( "this_subset" ) << New Column( "Y_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :Y_data, -78 ) )
-    );
-
-    step_name = "New column: Y";
-    //New column: Y
-    Data Table( "this_subset" ) << New Column( "Y",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :Y_data_lag )
-    );
-
-    step_name = "New column: W_data";
-    //New column: W_data
-    Data Table( "this_subset" ) << New Column( "W_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Wafer_Num" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "New column: W_data_lag";
-    //New column: W_data_lag
-    Data Table( "this_subset" ) << New Column( "W_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :W_data, -79 ) )
-    );
-
-    step_name = "New column: W";
-    //New column: W
-    Data Table( "this_subset" ) << New Column( "W",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :W_data_lag )
-    );
-
-    step_name = "Wait for formulas to evaluate";
-    //Wait for formulas to evaluate
-    Data Table( "this_subset" ) << RunFormulas;
-
-    step_name = "Delete column formula: X";
-    //Delete column formula: X
-    Data Table( "this_subset" ):X << Delete Formula;
-
-    step_name = "Delete column formula: X_data";
-    //Delete column formula: X_data
-    Data Table( "this_subset" ):X_data << Delete Formula;
-
-    step_name = "Delete column formula: X_data_lag";
-    //Delete column formula: X_data_lag
-    Data Table( "this_subset" ):X_data_lag << Delete Formula;
-
-    step_name = "Delete column formula: Y";
-    //Delete column formula: Y
-    Data Table( "this_subset" ):Y << Delete Formula;
-
-    step_name = "Delete column formula: Y_data";
-    //Delete column formula: Y_data
-    Data Table( "this_subset" ):Y_data << Delete Formula;
-
-    step_name = "Delete column formula: Y_data_lag";
-    //Delete column formula: Y_data_lag
-    Data Table( "this_subset" ):Y_data_lag << Delete Formula;
-
-    step_name = "Delete column formula: W";
-    //Delete column formula: W
-    Data Table( "this_subset" ):W << Delete Formula;
-
-    step_name = "Delete column formula: W_data";
-    //Delete column formula: W_data
-    Data Table( "this_subset" ):W_data << Delete Formula;
-
-    step_name = "Delete column formula: W_data_lag";
-    //Delete column formula: W_data_lag
-    Data Table( "this_subset" ):W_data_lag << Delete Formula;
-
-    step_name = "Delete columns";
-    //Delete columns
-    Data Table( "this_subset" ) << Delete Columns(
-    	:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
-    );
-
-    step_name = "Try to fill data in X";
-    //Try to fill data in X
-    Names Default To Here( 1 );
-    dt = Data Table( "this_subset" );
-    last_X = .;
-    If( 1 == 1,
-    	For Each Row(
-    		dt,
-    		If( Row() > 0,
-    			this_X = :X[Row()];
-    			If( !Is Missing( this_X ),
-    				last_X = this_X
-    			);
-    			If( Is Missing( this_X ),
-    				:X = last_X
-    			);
-    		)
-    	)
-    );;
-
-    step_name = "Try to fill data in Y";
-    //Try to fill data in Y
-    Names Default To Here( 1 );
-    dt = Data Table( "this_subset" );
-    last_Y = .;
-    If( 1 == 1,
-    	For Each Row(
-    		dt,
-    		If( Row() > 0,
-    			this_Y = :Y[Row()];
-    			If( !Is Missing( this_Y ),
-    				last_Y = this_Y
-    			);
-    			If( Is Missing( this_Y ),
-    				:Y = last_Y
-    			);
-    		)
-    	)
-    );;
-
-    step_name = "Rename data table: this_subset → Subset_site1";
-    //Rename data table: this_subset → Subset_site1
-    Data Table( "this_subset" ) << Set Name( "Subset_site1" );
-
-    step_name = "Site 2 new";
-    //Site 2 new
-
-    step_name = "Rename data table: Subset_site2 → this_subset";
-    //Rename data table: Subset_site2 → this_subset
-    Data Table( "Subset_site2" ) << Set Name( "this_subset" );
-
-    step_name = "New column: X_data";
-    //New column: X_data
-    Data Table( "this_subset" ) << New Column( "X_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Xcoord" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "new column: X_data_lag";
-    //new column: X_data_lag
-    Data Table( "this_subset" ) << New Column( "X_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :X_data, -77 ) )
-    );
-
-    step_name = "New column: X";
-    //New column: X
-    Data Table( "this_subset" ) << New Column( "X",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :X_data_lag )
-    );
-
-    step_name = "New column: Y_data";
-    //New column: Y_data
-    Data Table( "this_subset" ) << New Column( "Y_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Ycoord" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "New column: Y_data_lag";
-    //New column: Y_data_lag
-    Data Table( "this_subset" ) << New Column( "Y_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :Y_data, -78 ) )
-    );
-
-    step_name = "New column: Y";
-    //New column: Y
-    Data Table( "this_subset" ) << New Column( "Y",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :Y_data_lag )
-    );
-
-    step_name = "New column: W_data";
-    //New column: W_data
-    Data Table( "this_subset" ) << New Column( "W_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Wafer_Num" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "New column: W_data_lag";
-    //New column: W_data_lag
-    Data Table( "this_subset" ) << New Column( "W_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :W_data, -79 ) )
-    );
-
-    step_name = "New column: W";
-    //New column: W
-    Data Table( "this_subset" ) << New Column( "W",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :W_data_lag )
-    );
-
-    step_name = "Wait for formulas to evaluate";
-    //Wait for formulas to evaluate
-    Data Table( "this_subset" ) << RunFormulas;
-
-    step_name = "Delete column formula: X";
-    //Delete column formula: X
-    Data Table( "this_subset" ):X << Delete Formula;
-
-    step_name = "Delete column formula: X_data";
-    //Delete column formula: X_data
-    Data Table( "this_subset" ):X_data << Delete Formula;
-
-    step_name = "Delete column formula: X_data_lag";
-    //Delete column formula: X_data_lag
-    Data Table( "this_subset" ):X_data_lag << Delete Formula;
-
-    step_name = "Delete column formula: Y";
-    //Delete column formula: Y
-    Data Table( "this_subset" ):Y << Delete Formula;
-
-    step_name = "Delete column formula: Y_data";
-    //Delete column formula: Y_data
-    Data Table( "this_subset" ):Y_data << Delete Formula;
-
-    step_name = "Delete column formula: Y_data_lag";
-    //Delete column formula: Y_data_lag
-    Data Table( "this_subset" ):Y_data_lag << Delete Formula;
-
-    step_name = "Delete column formula: W";
-    //Delete column formula: W
-    Data Table( "this_subset" ):W << Delete Formula;
-
-    step_name = "Delete column formula: W_data";
-    //Delete column formula: W_data
-    Data Table( "this_subset" ):W_data << Delete Formula;
-
-    step_name = "Delete column formula: W_data_lag";
-    //Delete column formula: W_data_lag
-    Data Table( "this_subset" ):W_data_lag << Delete Formula;
-
-    step_name = "Delete columns";
-    //Delete columns
-    Data Table( "this_subset" ) << Delete Columns(
-    	:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
-    );
-
-    step_name = "Try to fill data in X";
-    //Try to fill data in X
-    Names Default To Here( 1 );
-    dt = Data Table( "this_subset" );
-    last_X = .;
-    If( 1 == 1,
-    	For Each Row(
-    		dt,
-    		If( Row() > 0,
-    			this_X = :X[Row()];
-    			If( !Is Missing( this_X ),
-    				last_X = this_X
-    			);
-    			If( Is Missing( this_X ),
-    				:X = last_X
-    			);
-    		)
-    	)
-    );;
-
-    step_name = "Try to fill data in Y";
-    //Try to fill data in Y
-    Names Default To Here( 1 );
-    dt = Data Table( "this_subset" );
-    last_Y = .;
-    If( 1 == 1,
-    	For Each Row(
-    		dt,
-    		If( Row() > 0,
-    			this_Y = :Y[Row()];
-    			If( !Is Missing( this_Y ),
-    				last_Y = this_Y
-    			);
-    			If( Is Missing( this_Y ),
-    				:Y = last_Y
-    			);
-    		)
-    	)
-    );;
-
-    step_name = "Rename data table: this_subset → Subset_site2";
-    //Rename data table: this_subset → Subset_site2
-    Data Table( "this_subset" ) << Set Name( "Subset_site2" );
-
-    step_name = "Site 3 new";
-    //Site 3 new
-
-    step_name = "Rename data table: Subset_site3 → this_subset";
-    //Rename data table: Subset_site3 → this_subset
-    Data Table( "Subset_site3" ) << Set Name( "this_subset" );
-
-    step_name = "New column: X_data";
-    //New column: X_data
-    Data Table( "this_subset" ) << New Column( "X_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Xcoord" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "new column: X_data_lag";
-    //new column: X_data_lag
-    Data Table( "this_subset" ) << New Column( "X_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :X_data, -77 ) )
-    );
-
-    step_name = "New column: X";
-    //New column: X
-    Data Table( "this_subset" ) << New Column( "X",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :X_data_lag )
-    );
-
-    step_name = "New column: Y_data";
-    //New column: Y_data
-    Data Table( "this_subset" ) << New Column( "Y_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Ycoord" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "New column: Y_data_lag";
-    //New column: Y_data_lag
-    Data Table( "this_subset" ) << New Column( "Y_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :Y_data, -78 ) )
-    );
-
-    step_name = "New column: Y";
-    //New column: Y
-    Data Table( "this_subset" ) << New Column( "Y",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :Y_data_lag )
-    );
-
-    step_name = "New column: W_data";
-    //New column: W_data
-    Data Table( "this_subset" ) << New Column( "W_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Wafer_Num" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "New column: W_data_lag";
-    //New column: W_data_lag
-    Data Table( "this_subset" ) << New Column( "W_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :W_data, -79 ) )
-    );
-
-    step_name = "New column: W";
-    //New column: W
-    Data Table( "this_subset" ) << New Column( "W",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :W_data_lag )
-    );
-
-    step_name = "Wait for formulas to evaluate";
-    //Wait for formulas to evaluate
-    Data Table( "this_subset" ) << RunFormulas;
-
-    step_name = "Delete column formula: X";
-    //Delete column formula: X
-    Data Table( "this_subset" ):X << Delete Formula;
-
-    step_name = "Delete column formula: X_data";
-    //Delete column formula: X_data
-    Data Table( "this_subset" ):X_data << Delete Formula;
-
-    step_name = "Delete column formula: X_data_lag";
-    //Delete column formula: X_data_lag
-    Data Table( "this_subset" ):X_data_lag << Delete Formula;
-
-    step_name = "Delete column formula: Y";
-    //Delete column formula: Y
-    Data Table( "this_subset" ):Y << Delete Formula;
-
-    step_name = "Delete column formula: Y_data";
-    //Delete column formula: Y_data
-    Data Table( "this_subset" ):Y_data << Delete Formula;
-
-    step_name = "Delete column formula: Y_data_lag";
-    //Delete column formula: Y_data_lag
-    Data Table( "this_subset" ):Y_data_lag << Delete Formula;
-
-    step_name = "Delete column formula: W";
-    //Delete column formula: W
-    Data Table( "this_subset" ):W << Delete Formula;
-
-    step_name = "Delete column formula: W_data";
-    //Delete column formula: W_data
-    Data Table( "this_subset" ):W_data << Delete Formula;
-
-    step_name = "Delete column formula: W_data_lag";
-    //Delete column formula: W_data_lag
-    Data Table( "this_subset" ):W_data_lag << Delete Formula;
-
-    step_name = "Delete columns";
-    //Delete columns
-    Data Table( "this_subset" ) << Delete Columns(
-    	:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
-    );
-
-    step_name = "Try to fill data in X";
-    //Try to fill data in X
-    Names Default To Here( 1 );
-    dt = Data Table( "this_subset" );
-    last_X = .;
-    If( 1 == 1,
-    	For Each Row(
-    		dt,
-    		If( Row() > 0,
-    			this_X = :X[Row()];
-    			If( !Is Missing( this_X ),
-    				last_X = this_X
-    			);
-    			If( Is Missing( this_X ),
-    				:X = last_X
-    			);
-    		)
-    	)
-    );;
-
-    step_name = "Try to fill data in Y";
-    //Try to fill data in Y
-    Names Default To Here( 1 );
-    dt = Data Table( "this_subset" );
-    last_Y = .;
-    If( 1 == 1,
-    	For Each Row(
-    		dt,
-    		If( Row() > 0,
-    			this_Y = :Y[Row()];
-    			If( !Is Missing( this_Y ),
-    				last_Y = this_Y
-    			);
-    			If( Is Missing( this_Y ),
-    				:Y = last_Y
-    			);
-    		)
-    	)
-    );;
-
-    step_name = "Rename data table: this_subset → Subset_site3";
-    //Rename data table: this_subset → Subset_site3
-    Data Table( "this_subset" ) << Set Name( "Subset_site3" );
-
-    step_name = "Site 4 new";
-    //Site 4 new
-
-    step_name = "Rename data table: Subset_site4 → this_subset";
-    //Rename data table: Subset_site4 → this_subset
-    Data Table( "Subset_site4" ) << Set Name( "this_subset" );
-
-    step_name = "New column: X_data";
-    //New column: X_data
-    Data Table( "this_subset" ) << New Column( "X_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Xcoord" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "new column: X_data_lag";
-    //new column: X_data_lag
-    Data Table( "this_subset" ) << New Column( "X_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :X_data, -77 ) )
-    );
-
-    step_name = "New column: X";
-    //New column: X
-    Data Table( "this_subset" ) << New Column( "X",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :X_data_lag )
-    );
-
-    step_name = "New column: Y_data";
-    //New column: Y_data
-    Data Table( "this_subset" ) << New Column( "Y_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Ycoord" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "New column: Y_data_lag";
-    //New column: Y_data_lag
-    Data Table( "this_subset" ) << New Column( "Y_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :Y_data, -78 ) )
-    );
-
-    step_name = "New column: Y";
-    //New column: Y
-    Data Table( "this_subset" ) << New Column( "Y",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :Y_data_lag )
-    );
-
-    step_name = "New column: W_data";
-    //New column: W_data
-    Data Table( "this_subset" ) << New Column( "W_data",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula(
-    		If(
-    			:Pin_name == "Wafer_Num" & Contains(
-    				:Test_name,
-    				"EFUSE_OTP1_DEVICE_ID_READ"
-    			),
-    			:result,
-    			.
-    		)
-    	)
-    );
-
-    step_name = "New column: W_data_lag";
-    //New column: W_data_lag
-    Data Table( "this_subset" ) << New Column( "W_data_lag",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( Lag( :W_data, -79 ) )
-    );
-
-    step_name = "New column: W";
-    //New column: W
-    Data Table( "this_subset" ) << New Column( "W",
-    	Numeric,
-    	"Nominal",
-    	Format( "Best", 12 ),
-    	Formula( :W_data_lag )
-    );
-
-    step_name = "Wait for formulas to evaluate";
-    //Wait for formulas to evaluate
-    Data Table( "this_subset" ) << RunFormulas;
-
-    step_name = "Delete column formula: X";
-    //Delete column formula: X
-    Data Table( "this_subset" ):X << Delete Formula;
-
-    step_name = "Delete column formula: X_data";
-    //Delete column formula: X_data
-    Data Table( "this_subset" ):X_data << Delete Formula;
-
-    step_name = "Delete column formula: X_data_lag";
-    //Delete column formula: X_data_lag
-    Data Table( "this_subset" ):X_data_lag << Delete Formula;
-
-    step_name = "Delete column formula: Y";
-    //Delete column formula: Y
-    Data Table( "this_subset" ):Y << Delete Formula;
-
-    step_name = "Delete column formula: Y_data";
-    //Delete column formula: Y_data
-    Data Table( "this_subset" ):Y_data << Delete Formula;
-
-    step_name = "Delete column formula: Y_data_lag";
-    //Delete column formula: Y_data_lag
-    Data Table( "this_subset" ):Y_data_lag << Delete Formula;
-
-    step_name = "Delete column formula: W";
-    //Delete column formula: W
-    Data Table( "this_subset" ):W << Delete Formula;
-
-    step_name = "Delete column formula: W_data";
-    //Delete column formula: W_data
-    Data Table( "this_subset" ):W_data << Delete Formula;
-
-    step_name = "Delete column formula: W_data_lag";
-    //Delete column formula: W_data_lag
-    Data Table( "this_subset" ):W_data_lag << Delete Formula;
-
-    step_name = "Delete columns";
-    //Delete columns
-    Data Table( "this_subset" ) << Delete Columns(
-    	:X_data, :Y_data, :W_data, :X_data_lag, :Y_data_lag, :W_data_lag
-    );
-
-    step_name = "Try to fill data in X";
-    //Try to fill data in X
-    Names Default To Here( 1 );
-    dt = Data Table( "this_subset" );
-    last_X = .;
-    If( 1 == 1,
-    	For Each Row(
-    		dt,
-    		If( Row() > 0,
-    			this_X = :X[Row()];
-    			If( !Is Missing( this_X ),
-    				last_X = this_X
-    			);
-    			If( Is Missing( this_X ),
-    				:X = last_X
-    			);
-    		)
-    	)
-    );;
-
-    step_name = "Try to fill data in Y";
-    //Try to fill data in Y
-    Names Default To Here( 1 );
-    dt = Data Table( "this_subset" );
-    last_Y = .;
-    If( 1 == 1,
-    	For Each Row(
-    		dt,
-    		If( Row() > 0,
-    			this_Y = :Y[Row()];
-    			If( !Is Missing( this_Y ),
-    				last_Y = this_Y
-    			);
-    			If( Is Missing( this_Y ),
-    				:Y = last_Y
-    			);
-    		)
-    	)
-    );;
-
-    step_name = "Rename data table: this_subset → Subset_site4";
-    //Rename data table: this_subset → Subset_site4
-    Data Table( "this_subset" ) << Set Name( "Subset_site4" );
+    
 
     step_name = "Concatenate tables";
     //Concatenate tables
-    Data Table( "Subset_site1" ) << Concatenate(
-    	Data Table( "Subset_site2" ),
-    	Data Table( "Subset_site3" ),
-    	Data Table( "Subset_site4" ),
+    Data Table( "site_num=1" ) << Concatenate(
+    	Data Table( "site_num=2" ),
+    	Data Table( "site_num=3" ),
+    	Data Table( "site_num=4" ),
     	Output Table( "concat_table" )
     );
+    
+    if (site1_found==1 & site2_found==1 & site3_found==1 & site4_found==1,
+		Show("4 sites");
+		,
+    	 Data Table( "concat_table" ) << Delete Columns(:column 1);				//a side effect of possible empty tables.  If ANY site was missing do this.
+    );
+    
+   
 
     step_name = "Close Data Table: Subset_site1";
     //Close Data Table: Subset_site1
-    Close( Data Table( "Subset_site1" ), NoSave );
+    Close( Data Table( "site_num=1" ), NoSave );
+    Close( Data Table( "site_num=2" ), NoSave );
+    Close( Data Table( "site_num=3" ), NoSave );
+    Close( Data Table( "site_num=4" ), NoSave );
 
-    step_name = "Close Data Table: Subset_site2";
-    //Close Data Table: Subset_site2
-    Close( Data Table( "Subset_site2" ), NoSave );
-
-    step_name = "Close Data Table: Subset_site3";
-    //Close Data Table: Subset_site3
-    Close( Data Table( "Subset_site3" ), NoSave );
-
-    step_name = "Close Data Table: Subset_site4";
-    //Close Data Table: Subset_site4
-    Close( Data Table( "Subset_site4" ), NoSave );
-
-    step_name = "Delete column: site_num 2";
+    //step_name = "Delete column: site_num 2";
     //Delete column: site_num 2
-    Data Table( "concat_table" ) << Delete Columns( :site_num 2 );
+    //Data Table( "concat_table" ) << Delete Columns( :site_num 2 );
 
     step_name = "Sort data table";
     //Sort data table
@@ -1542,23 +667,7 @@ Show("This is called to operate on file name: ",this_file_name);
     	Order( Ascending )
     );
 
-    step_name = "Join on the \!"Lot_list\!" metadata";
-    //Join on the "Lot_list" metadata
-
-    step_name = "Tack on the Wafer metadata from the lot_list table";
-    //Tack on the Wafer metadata from the lot_list table
-
-    step_name = "Change column formula: W";
-    //Change column formula: W
-    Data Table( "concat_table" ):W << Set Formula( :Probe_wafer );
-
-    step_name = "Wait for formulas to evaluate";
-    //Wait for formulas to evaluate
-    Data Table( "concat_table" ) << RunFormulas;
-
-    step_name = "Delete column formula: W";
-    //Delete column formula: W
-    Data Table( "concat_table" ):W << Delete Formula;
+    
 
     step_name = "Save data table: concat_table_full.jmp";
     //Save data table: concat_table_full.jmp
