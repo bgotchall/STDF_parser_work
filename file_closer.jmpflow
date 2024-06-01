@@ -2,7 +2,27 @@ Workflow(
 	Names Default To Here( 1 ),
 	Run_On_Open( 0 ),
 	Allow_Data_Prompting( 1 ),
-	References,
+	References(
+		Ref_Table( Ref_Table_Name( "ATR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "DTR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "HBR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "MIR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "MPR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "MRR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "PCR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "PIR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "PMR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "PRR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "PTR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "SBR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "SDR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table( Ref_Table_Name( "TSR_table" ), Ref_Mode( "If Necessary" ) ),
+		Ref_Table(
+			Ref_Table_Name( "lot_list_to_process_temp" ),
+			Ref_Mode( "If Necessary" )
+		),
+		Ref_Table( Ref_Table_Name( "superset_table" ), Ref_Mode( "If Necessary" ) )
+	),
 	Export_Configs( Config( Paths, Presentation_Mode( 0 ), Locked_Mode( 0 ) ) ),
 	Steps(
 		Workflow_Step(

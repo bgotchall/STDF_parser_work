@@ -1,0 +1,41 @@
+//////////////////////////////////////////////////////////////////////////////////////////////
+//   file.atdf -> file_PTR_plus.jsl -> file_PTR_plus_full.jsl
+//
+//This script combines everything and processes from atdf files to processed files.
+
+Include("JSL_include_test.jsl");
+Include("JSL_manually_parse_ATDF_v2_sub.jsl");
+Include("JSL_file_process_add_XYW_v1_sub.jsl");
+
+atdf_source_path="C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\FT_Datalogs\atdf_to_process\";
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// open a simple text file, possibly created by another script on the fly, to get a list of files to operate on:
+file_list_table = Open( "list_of_atdf_files_to_process.csv", text );
+Wait(0);
+
+//include_file_test("arg1", "arg2");
+
+For Each Row(file_list_table,
+	my_row=Row();
+	Show (my_row);
+	this_file_name=atdf_source_path || :File_name[Row()];
+	Show ("this filename read is ", this_file_name);			//write to debugger
+	if (:Skip[Row()]=="Y",
+		Show ("skipping this file");
+	,
+		WF_manually_parse_ATDF_v2_sub(this_file_name);		// atdf -> PTR_plus
+		Show ("break point here");
+		//Show ("num_sites is",:num_sites[Row()] );
+		file_process_workflow_v1_no_QL_FT(this_file_name);		// PTR_plus -> full
+	);
+	
+);
+Close( Data Table( file_list_table ), NoSave );
+
+//Close();			#When this is ready to be deployed, this has to be there to close it when finished.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////

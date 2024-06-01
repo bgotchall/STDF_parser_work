@@ -20,7 +20,7 @@
 Names Default To Here( 1 );
 
 
-WF_manually_parse_ATDF_v2=function({this_file_name}, 
+WF_manually_parse_ATDF_v2_sub=function({this_file_name}, 
 	Show("This is called to operate on file name: ",this_file_name);
     
 //get the filename and path seperately:
@@ -206,6 +206,10 @@ if(0,
     step_name = "Delete selected rows";
     //Delete selected rows
     Data Table( "Source_atdf" ) << Select where( :Record_type == "FAR" ) << Delete Rows;
+    
+    //For now, kill any WRR record, which the STDF2ATDF script is messing up.  I will need to be smarter for
+    //probe files:
+    Data Table( "Source_atdf" ) << Select where( :Record_type == "WRR" ) << Delete Rows;
 ///////////////////////////////////////////////////////////////////////////////////
     step_name = "Process ATR";
     //Process ATR
@@ -2142,7 +2146,8 @@ if(0,
     
     Data Table( "concat_out" ) << Save(    	ptr_plus_file_name    );
     this_name= Just_file_name_no_suffix || "_PTR_plus";
-    Close( Data Table( this_name ), NoSave );
+    // For the sub, leave the PTR_plus_table open for further processing.
+    //Close( Data Table( this_name ), NoSave );
 
     step_name = "Close Data Table: PTR_table";
     //Close Data Table: PTR_table
@@ -2201,28 +2206,8 @@ if(0,
     //Close Data Table: ATR_table
     Close( Data Table( "ATR_table" ), NoSave );
     
-    
-    
-    
-    
-    
+
+
+);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////    
-);
-
-// open a simple text file, possibly created by another script on the fly, to get a list of files to operate on:
-file_list_table = Open( "list_of_atdf_files_to_process.csv", text );
-Wait(0);
-
-For Each Row(file_list_table,
-	my_row=Row();
-	Show (my_row);
-	this_file_name= :File_name[Row()];
-	Show ("this filename read is ", this_file_name);			//write to debugger?
-	WF_manually_parse_ATDF_v2(this_file_name);
-	
-);
-Close( Data Table( file_list_table ), NoSave );
-
-//Close();			#When this is ready to be deployed, this has to be there to close it when finished.
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////

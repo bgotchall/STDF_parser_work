@@ -1,0 +1,9 @@
+Names Default To Here( 1 );
+
+include_file_test=function({arg_in,argin2},
+
+	Show ("I am a remote sub.");
+	Show ("This is the args", arg_in);
+	Show ("2nd arg is", argin2);
+
+)

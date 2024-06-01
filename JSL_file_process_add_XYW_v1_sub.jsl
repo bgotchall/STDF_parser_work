@@ -232,8 +232,10 @@ Show("This is called to operate on file name: ",this_file_name);
 	Show(just_file_name);
 	Show(just_path);
 	
-	Just_file_name_no_suffix=Munger(just_file_name,1,".jmp","");
+	Just_file_name_no_suffix=Munger(just_file_name,1,".atdf","");
+	Just_table_name=Just_file_name_no_suffix || "_PTR_plus";
 	Show(Just_file_name_no_suffix);
+	Show(Just_table_name);
 	
 	full_file_name=  output_files_path || "Full_files\" ||   Just_file_name_no_suffix || "_full.jmp";
     Show(full_file_name);
@@ -247,19 +249,20 @@ Show("This is called to operate on file name: ",this_file_name);
 
     step_name = "Open Data Table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp";
     //Open Data Table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp
-    dt=Open(    	this_file_name    );
+    //dt=Open(    	this_file_name    );
+    //dt=Just_table_name;
     Wait(0);
 
     step_name = "Clear row states";
     //Clear row states
-    Data Table( dt ) << Clear Row States;
+    Data Table( Just_table_name ) << Clear Row States;
 
     step_name = "Clean up imported CSV file";
     //Clean up imported CSV file
 
     step_name = "Rename data table: input_raw_file.csv → Source_table";
     //Rename data table: input_raw_file.csv → Source_table
-    Data Table( dt ) << Set Name( "Source_table" );
+    Data Table( Just_table_name ) << Set Name( "Source_table" );
 
     step_name = "Clear row states";
     //Clear row states
@@ -586,7 +589,13 @@ Show("This is called to operate on file name: ",this_file_name);
 		);
 	);
 
-
+	/*//stupid hack for now:  Since my files are all 1 site or 4, just hardcode it in the lot file and use that info now.  This will break for non 1 or non4 sites.
+	if (num_sites==4,
+		site1_found = 1;
+		site2_found = 1;
+		site3_found = 1;
+		site4_found = 1;
+	);*/
 
 	//this will chop up the table into 1,2,3 or 4 tables, called "site_num=1" for instance
 	step_name = "Subset data table";
@@ -689,27 +698,6 @@ Show("This is called to operate on file name: ",this_file_name);
     
 );
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-// open a simple text file, possibly created by another script on the fly, to get a list of files to operate on:
-file_list_table = Open( "lot_list_to_process_PTR_plus.csv", text );
-Wait(0);
-
-For Each Row(file_list_table,
-	my_row=Row();
-	Show (my_row);
-	this_file_name= :File_name[Row()];
-	Show ("this filename read is ", this_file_name);			//write to debugger?
-	file_process_workflow_v1_no_QL_FT(this_file_name);
-	
-);
-
-Close( Data Table( file_list_table ), NoSave );
-
-//Close();			#When this is ready to be deployed, this has to be there to close it when finished.
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 
