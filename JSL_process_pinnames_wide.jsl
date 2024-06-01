@@ -1,0 +1,3507 @@
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////
+//   file_full.jsl   ->  aggregated data files
+
+Names Default To Here( 1 );
+
+
+WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name}, 
+
+
+	Show("starting pin process sub");
+	Show ("Arg is ", this_file_name);
+
+
+	position_of_last_slash=Contains(this_file_name,"\",-1);			//should search backward from the end.
+	just_file_name=Substr(this_file_name,position_of_last_slash+1);
+	just_path=Substr(this_file_name,1,position_of_last_slash);
+	output_files_path="C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\May_2024_work\";  	//just a global at this point
+	
+	Wait(0);
+	Show(just_file_name);
+	Show(just_path);
+	
+	Just_file_name_no_suffix=Munger(just_file_name,1,".atdf","");
+	
+	Show(Just_file_name_no_suffix);
+	
+	full_table_name= Just_file_name_no_suffix || "_full";
+	Show (full_table_name);
+	
+	//full_file_name=  output_files_path || "Full_files\" ||   Just_file_name_no_suffix || "_full.jmp";
+    //Show(full_file_name);
+    //ptr_plus_file_name= output_files_path || "PTR_plus\" ||   Just_file_name_no_suffix  || "_PTR_plus.jmp";
+    //Show(ptr_plus_file_name);
+
+
+///////////////////////////////////
+
+
+
+    step_name = "Open Data Table: Subset of WP6BB18_01_single_dut.jmp";
+    //Open Data Table: Subset of WP6BB18_01_single_dut.jmp
+    //Open( "source_full_file_PTR_plus_full.jmp" );
+
+    step_name = "Rename data table: Subset of WP6BB18_01_single_dut → Source_table";
+    //Rename data table: Subset of WP6BB18_01_single_dut → Source_table
+    Data Table( full_table_name ) << Set Name( "Source_table" );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Add Unique ID, has limits, and is_edge";
+    //Add Unique ID, has limits, and is_edge
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "New column: Column 11";
+    //New column: Column 11
+    Data Table( "Source_table" ) << New Column( "Column 11",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 11}, after( :Lot_wafer ) );
+
+    step_name = "Change column formula: Column 11";
+    //Change column formula: Column 11
+    Data Table( "Source_table" ):Column 11 << Set Formula(
+    	Char( :X ) || "_" || Char( :Y ) || "_" || Char( :W ) || "_" || :Lot_number
+    );
+
+    step_name = "Change column display width: Column 11";
+    //Change column display width: Column 11
+    Data Table( "Source_table" ):Column 11 << Set Display Width( 186 );
+
+    step_name = "Change column name: Column 11 → Unique_id";
+    //Change column name: Column 11 → Unique_id
+    Data Table( "Source_table" ):Column 11 << Set Name( "Unique_id" );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Source_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: Unique_id";
+    //Delete column formula: Unique_id
+    Data Table( "Source_table" ):Unique_id << Delete Formula;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "New column: Column 21";
+    //New column: Column 21
+    Data Table( "Source_table" ) << New Column( "Column 21",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 21}, after( :units ) );
+
+    step_name = "Change column info: Has_limits";
+    //Change column info: Has_limits
+    Data Table( "Source_table" ):Column 21 << Set Name( "Has_limits" ) <<
+    Set Modeling Type( "Nominal" );
+
+    step_name = "Change column formula: Has_limits";
+    //Change column formula: Has_limits
+    Data Table( "Source_table" ):Has_limits <<
+    Set Formula( If( :lo_limit == 0 & :hi_limit == 0, 0, 1 ) );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Source_table" ) << RunFormulas;
+
+    step_name = "New column: Column 22";
+    //New column: Column 22
+    Data Table( "Source_table" ) << New Column( "Column 22",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 22}, after( :Has_limits ) );
+
+    step_name = "Change column name: Column 22 → Is_edge_die";
+    //Change column name: Column 22 → Is_edge_die
+    Data Table( "Source_table" ):Column 22 << Set Name( "Is_edge_die" );
+
+    step_name = "Open Data Table: list_of_edge_die_SDC300_all_wafers.jmp";
+    //Open Data Table: list_of_edge_die_SDC300_all_wafers.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/JMP_stuff/list_of_edge_die_SDC300_all_wafers.jmp"
+    );
+
+    step_name = "Join data tables";
+    //Join data tables
+    Data Table( "Source_table" ) << Join(
+    	With( Data Table( "list_of_edge_die_SDC300_all_wafers" ) ),
+    	Merge Same Name Columns,
+    	Match Flag( 0 ),
+    	Copy formula( 0 ),
+    	By Matching Columns( :X = :X, :Y = :Y, :Device = :Device ),
+    	Drop multiples( 0, 0 ),
+    	Include Nonmatches( 1, 0 ),
+    	Preserve main table order( 1 ),
+    	Output Table( "join_out" )
+    );
+
+    step_name = "Delete column: X_Y";
+    //Delete column: X_Y
+    Data Table( "join_out" ) << Delete Columns( :X_Y );
+
+    step_name = "Close Data Table: Source_table";
+    //Close Data Table: Source_table
+    Close( Data Table( "Source_table" ), NoSave );
+
+    step_name = "Close Data Table: list_of_edge_die_SDC300_all_wafers";
+    //Close Data Table: list_of_edge_die_SDC300_all_wafers
+    Close( Data Table( "list_of_edge_die_SDC300_all_wafers" ), NoSave );
+
+    step_name = "Rename data table: join_out → Source_table";
+    //Rename data table: join_out → Source_table
+    Data Table( "join_out" ) << Set Name( "Source_table" );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Source_table" ) << RunFormulas;
+
+   // step_name = "Delete column formula: Is_edge_die";
+    //Delete column formula: Is_edge_die
+    //Data Table( "Source_table" ):Is_edge_die << Delete Formula;
+
+    step_name = "Recode column: Is_edge_die";
+    //Recode column: Is_edge_die
+    Local( {dt},
+    	dt = Data Table( "Source_table" );
+    	dt << Begin Data Update;
+    	dt << Recode Column(
+    		dt:Is_edge_die,
+    		{Map Value( _rcOrig, {., 0}, Unmatched( _rcNow ) )},
+    		Update Properties( 1 ),
+    		Target Column( :Is_edge_die )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Delete non PTR records -- this may be a mistake or unnecessary";
+    //Delete non PTR records -- this may be a mistake or unnecessary
+
+    step_name = "Select matching cells";
+    //Select matching cells
+    Data Table( "Source_table" ) << Select Where( :Record_type == "PTR" );
+
+    step_name = "Invert current selection";
+    //Invert current selection
+    Data Table( "Source_table" ) << Invert Row Selection;
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select Where( :Record_type == "PTR" ) <<
+    Invert Row Selection << Delete Rows;
+
+    step_name = "Delete tests that mean nothing";
+    //Delete tests that mean nothing
+
+    step_name = "Delete tests that mean nothing";
+    //Delete tests that mean nothing
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Pin_name, "START" ) | Contains( :Pin_name, "STOP" ) |
+    	Contains( :Pin_name, "ADJ" ),
+    	Current Selection( "Extend" )
+    );
+
+    step_name = "Delete TX_IDRV, TX Freq";
+    //Delete TX_IDRV, TX Freq
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Pin_name, "TX_IDRV" ) | Contains( :Pin_name, "TX Freq" ),
+    	Current Selection( "Extend" )
+    ) << Delete Rows;
+
+    step_name = "Delete START, STOP, and ADJ";
+    //Delete START, STOP, and ADJ
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Pin_name, "START" ) | Contains( :Pin_name, "STOP" ) |
+    	Contains( :Pin_name, "ADJ" ),
+    	Current Selection( "Extend" )
+    ) << Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "SDM_SAT_0X3" )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "SDM_SAT_0X3" )
+    ) << Delete Rows;
+
+    step_name = "Change column format: result";
+    //Change column format: result
+    Data Table( "Source_table" ):result << Format( "Best", 12 );
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( :Pin_name == "TEST" );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( :Pin_name == "TEST" ) << Delete Rows;
+
+    step_name = "Delete strictly digital tests";
+    //Delete strictly digital tests
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "SCAN" ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "SCAN" ) ) <<
+    Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "MBIST" ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "MBIST" ) ) <<
+    Delete Rows;
+
+    step_name = "Seperate out the min/max/nom  -\!"Vdd_range\!"";
+    //Seperate out the min/max/nom  -"Vdd_range"
+
+    step_name = "New column: Column 17";
+    //New column: Column 17
+    Data Table( "Source_table" ) << New Column( "Column 17",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 17}, after( :Test_name ) );
+
+    step_name = "Change column info: Vdd_level";
+    //Change column info: Vdd_level
+    Data Table( "Source_table" ):Column 17 << Set Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Vdd_level" );
+
+    step_name = "Change column formula: Vdd_level";
+    //Change column formula: Vdd_level
+    Data Table( "Source_table" ):Vdd_level << Set Formula(
+    	If( Contains( :Test_name, "NOM" ),
+    		"NOM",
+    		If( Contains( :Test_name, "MAX" ),
+    			"MAX",
+    			If( Contains( :Test_name, "MIN" ),
+    				"MIN",
+    				.
+    			)
+    		)
+    	)
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Move selected column: Vdd_level";
+    //Move selected column: Vdd_level
+    Data Table( "Source_table" ) << Move Selected Columns(
+    	{:Vdd_level},
+    	after( :Pin_name )
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Source_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: Vdd_level";
+    //Delete column formula: Vdd_level
+    Data Table( "Source_table" ):Vdd_level << Delete Formula;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "New column: Column 17";
+    //New column: Column 17
+    Data Table( "Source_table" ) << New Column( "Column 17",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 17}, after( :Test_name ) );
+
+    step_name = "Change column info: Test_name2";
+    //Change column info: Test_name2
+    Data Table( "Source_table" ):Column 17 << Set Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Test_name2" );
+
+    step_name = "Change column formula: Test_name2";
+    //Change column formula: Test_name2
+    Data Table( "Source_table" ):Test_name2 <<
+    Set Formula(
+    	If(
+    		Substr( :Test_name, -3, 3 ) == "MIN" | Substr( :Test_name, -3, 3 ) == "NOM"
+    		 | Substr( :Test_name, -3, 3 ) == "MAX",
+    		Substr( :Test_name, 1, Length( :Test_name ) - 4 ),
+    		:Test_name
+    	)
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Source_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: Test_name2";
+    //Delete column formula: Test_name2
+    Data Table( "Source_table" ):Test_name2 << Delete Formula;
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "Source_table" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name2 → Test_name";
+    //Change column name: Test_name2 → Test_name
+    Data Table( "Source_table" ):Test_name2 << Set Name( "Test_name" );
+
+    step_name = "Select matching cells";
+    //Select matching cells
+    Data Table( "Source_table" ) << Select Where( :Vdd_level == "" );
+
+    step_name = "Recode column: Vdd_level";
+    //Recode column: Vdd_level
+    Local( {dt},
+    	dt = Data Table( "Source_table" );
+    	dt << Begin Data Update;
+    	For Each Row(
+    		dt,
+    		dt:Vdd_level[] = Map Value(
+    			dt:Vdd_level,
+    			{"", "NOM"},
+    			Unmatched( dt:Vdd_level )
+    		)
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Process Harm_dist";
+    //Process Harm_dist
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "HARM_DIST" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "HARM_DIST" ) )
+     << Subset(
+    	Output Table( "just_harm_dist" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "HARM_DIST" ) )
+     << Delete Rows;
+
+    step_name = "New column: COM_or_IND";
+    //New column: COM_or_IND
+    Data Table( "just_harm_dist" ) << New Column( "COM_or_IND",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 )
+    );
+
+    step_name = "Change column formula: COM_or_IND";
+    //Change column formula: COM_or_IND
+    Data Table( "just_harm_dist" ):COM_or_IND <<
+    Set Formula( If( Contains( :Test_name, "COM" ), "COM", "IND" ) );
+
+    step_name = "New column: Test_name_2";
+    //New column: Test_name_2
+    Data Table( "just_harm_dist" ) << New Column( "Test_name_2",
+    	Character,
+    	"Nominal",
+    	<<Set Initial Data( "HARM_DIST_TEST_RAW" )
+    ) << Move Selected Columns( {:Test_name_2}, after( :Test_name ) );
+
+    step_name = "Change column display width: Test_name_2";
+    //Change column display width: Test_name_2
+    Data Table( "just_harm_dist" ):Test_name_2 << Set Display Width( 147 );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "just_harm_dist" ) << RunFormulas;
+
+    step_name = "Delete column formula: COM_or_IND";
+    //Delete column formula: COM_or_IND
+    Data Table( "just_harm_dist" ):COM_or_IND << Delete Formula;
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "just_harm_dist" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name_2 → Test_name";
+    //Change column name: Test_name_2 → Test_name
+    Data Table( "just_harm_dist" ):Test_name_2 << Set Name( "Test_name" );
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "just_harm_dist" ) << Text to Columns(
+    	columns( :Pin_name ),
+    	Delimiters( "_" )
+    );
+
+    step_name = "Select matching cells";
+    //Select matching cells
+    Data Table( "just_harm_dist" ) << Select Where( :Pin_name 1 == "LX" );
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "just_harm_dist" ) << Select where( :Pin_name 1 == "LX" );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "just_harm_dist" ) << Select where( :Pin_name 1 == "LX" ) << Delete Rows;
+
+    step_name = "Change column name: Pin_name 1 2 → Harmonic";
+    //Change column name: Pin_name 1 2 → Harmonic
+    Data Table( "just_harm_dist" ):Pin_name 1 << Set Name( "Harmonic" );
+
+    step_name = "Recode column: Pin_name 4 2";
+    //Recode column: Pin_name 4 2
+    Local( {dt, col1},
+    	dt = Data Table( "just_harm_dist" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Pin_name 4 );
+    	col1 << Set Name( "Pin_name 4 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Pin_name 4 ) );
+    	dt << Recode Column(
+    		dt:Pin_name 4,
+    		{Map Value(
+    			_rcOrig,
+    			{"A", "PD_A", "B", "PD_B", "C", "PD_C", "D", "PD_D"},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column: Pin_name 4";
+    //Delete column: Pin_name 4
+    Data Table( "just_harm_dist" ) << Delete Columns( :Pin_name 4 );
+
+    step_name = "New column: Column 17";
+    //New column: Column 17
+    Data Table( "just_harm_dist" ) << New Column( "Column 17",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 17}, after( :Pin_name 4 2 ) );
+
+    step_name = "Change column formula: Column 17";
+    //Change column formula: Column 17
+    Data Table( "just_harm_dist" ):Column 17 <<
+    Set Formula( If( !Is Missing( :Pin_name 4 2 ), :Pin_name 4 2, :Pin_name 3 ) );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "just_harm_dist" ) << RunFormulas;
+
+    step_name = "Delete column formula: Column 17";
+    //Delete column formula: Column 17
+    Data Table( "just_harm_dist" ):Column 17 << Delete Formula;
+
+    step_name = "Delete column: Pin_name 4 2";
+    //Delete column: Pin_name 4 2
+    Data Table( "just_harm_dist" ) << Delete Columns( :Pin_name 4 2 );
+
+    step_name = "Delete column: Pin_name 3";
+    //Delete column: Pin_name 3
+    Data Table( "just_harm_dist" ) << Delete Columns( :Pin_name 3 );
+
+    step_name = "New column: Test_name_2";
+    //New column: Test_name_2
+    Data Table( "just_harm_dist" ) << New Column( "Test_name_2",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 )
+    ) << Move Selected Columns( {:Test_name_2}, after( :Pin_name 2 ) );
+
+    step_name = "Change column formula: Test_name_2";
+    //Change column formula: Test_name_2
+    Data Table( "just_harm_dist" ):Test_name_2 <<
+    Set Formula( :Test_name || "_" || :Pin_name 2 );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "just_harm_dist" ) << RunFormulas;
+
+    step_name = "Change column display width: Test_name_2";
+    //Change column display width: Test_name_2
+    Data Table( "just_harm_dist" ):Test_name_2 << Set Display Width( 188 );
+
+    step_name = "Delete column formula: Test_name_2";
+    //Delete column formula: Test_name_2
+    Data Table( "just_harm_dist" ):Test_name_2 << Delete Formula;
+
+    step_name = "Move selected column: Test_name_2";
+    //Move selected column: Test_name_2
+    Data Table( "just_harm_dist" ) <<
+    Move Selected Columns( {:Test_name_2}, after( :Test_name ) );
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "just_harm_dist" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name_2 → Test_name";
+    //Change column name: Test_name_2 → Test_name
+    Data Table( "just_harm_dist" ):Test_name_2 << Set Name( "Test_name" );
+
+    step_name = "Move selected column: Harmonic";
+    //Move selected column: Harmonic
+    Data Table( "just_harm_dist" ) << Move Selected Columns( {:Harmonic}, To Last );
+
+    step_name = "Delete column: Pin_name 2";
+    //Delete column: Pin_name 2
+    Data Table( "just_harm_dist" ) << Delete Columns( :Pin_name 2 );
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "just_harm_dist" ) << Delete Columns( :Pin_name );
+
+    step_name = "Change column name: Column 17 → Pin_name";
+    //Change column name: Column 17 → Pin_name
+    Data Table( "just_harm_dist" ):Column 17 << Set Name( "Pin_name" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "just_harm_dist" ) << Select Where(
+    	:Test_name == "HARM_DIST_TEST_RAW_MAG"
+    ) << Subset(
+    	Output Table( "Harm_dist_mag" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "just_harm_dist" ) << Select Where(
+    	:Test_name == "HARM_DIST_TEST_RAW_MAG"
+    ) << Delete Rows;
+
+    step_name = "Rename data table: just_harm_dist → Harm_dist_dB";
+    //Rename data table: just_harm_dist → Harm_dist_dB
+    Data Table( "just_harm_dist" ) << Set Name( "Harm_dist_dB" );
+
+    step_name = "Process_SNR_dB";
+    //Process_SNR_dB
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "TOUCH_SNR" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "TOUCH_SNR" ) )
+     << Subset(
+    	Output Table( "SNR_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "TOUCH_SNR" ) )
+     << Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "SNR_table" ) << Select where( Contains( :Pin_name, "LX" ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "SNR_table" ) << Select where( Contains( :Pin_name, "LX" ) ) <<
+    Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "SNR_table" ) << Select where( Contains( :Pin_name, "dB" ) );
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "SNR_table" ) << Select where( Contains( :Pin_name, "dB" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "SNR_table" ) << Select where( Contains( :Pin_name, "dB" ) ) <<
+    Subset(
+    	Output Table( "SNR_table_dB" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "SNR_table" ) << Select where( Contains( :Pin_name, "dB" ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "SNR_table" ) << Select where( Contains( :Pin_name, "dB" ) ) <<
+    Delete Rows;
+
+    step_name = "New column: COM_or_IND";
+    //New column: COM_or_IND
+    Data Table( "SNR_table_dB" ) << New Column( "COM_or_IND", Character, "Nominal" );
+
+    step_name = "Change column formula: COM_or_IND";
+    //Change column formula: COM_or_IND
+    Data Table( "SNR_table_dB" ):COM_or_IND <<
+    Set Formula( If( Contains( :Test_name, "COM" ), "COM", "IND" ) );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "SNR_table_dB" ) << RunFormulas;
+
+    step_name = "Delete column formula: COM_or_IND";
+    //Delete column formula: COM_or_IND
+    Data Table( "SNR_table_dB" ):COM_or_IND << Delete Formula;
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "SNR_table_dB" ) << Text to Columns(
+    	columns( :Pin_name ),
+    	Delimiters( "_" )
+    );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "SNR_table_dB" ) << Delete Columns( :Pin_name, :Pin_name 1 );
+
+    step_name = "Change column name: Pin_name 2 → Pin_name";
+    //Change column name: Pin_name 2 → Pin_name
+    Data Table( "SNR_table_dB" ):Pin_name 2 << Set Name( "Pin_name" );
+
+    step_name = "New column: Test_name2";
+    //New column: Test_name2
+    Data Table( "SNR_table_dB" ) << New Column( "Test_name2",
+    	Character,
+    	"Nominal",
+    	<<Set Initial Data( "TOUCH_SNR_0XA_20KHZ_RAW" )
+    ) << Move Selected Columns( {:Test_name2}, after( :Test_name ) );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "SNR_table_dB" ) << RunFormulas;
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "SNR_table_dB" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name2 → Test_name";
+    //Change column name: Test_name2 → Test_name
+    Data Table( "SNR_table_dB" ):Test_name2 << Set Name( "Test_name" );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Change column display width: Test_name";
+    //Change column display width: Test_name
+    Data Table( "SNR_table_dB" ):Test_name << Set Display Width( 226 );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "SNR_table" ) << Clear Row States;
+
+    step_name = "Process_SNR_mag_samples";
+    //Process_SNR_mag_samples
+
+    step_name = "New column: COM_or_IND";
+    //New column: COM_or_IND
+    Data Table( "SNR_table" ) << New Column( "COM_or_IND", Character, "Nominal" );
+
+    step_name = "Change column formula: COM_or_IND";
+    //Change column formula: COM_or_IND
+    Data Table( "SNR_table" ):COM_or_IND << Set Formula(
+    	If( Contains( :Test_name, "COM" ),
+    		"COM",
+    		"IND"
+    	)
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "SNR_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: COM_or_IND";
+    //Delete column formula: COM_or_IND
+    Data Table( "SNR_table" ):COM_or_IND << Delete Formula;
+
+    step_name = "Recode column: Test_name 2";
+    //Recode column: Test_name 2
+    Local( {dt, col1},
+    	dt = Data Table( "SNR_table" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Test_name );
+    	col1 << Set Name( "Test_name 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Test_name ) );
+    	dt << Recode Column(
+    		dt:Test_name,
+    		{Map Value(
+    			_rcOrig,
+    			{"TOUCH_SNR_COM_0XA_20KHZ_RAW", "TOUCH_SNR_0XA_20KHZ_RAW",
+    			"TOUCH_SNR_IND_0XA_20KHZ_RAW", "TOUCH_SNR_0XA_20KHZ_RAW"},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "SNR_table" ) << RunFormulas;
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "SNR_table" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name 2 → Test_name";
+    //Change column name: Test_name 2 → Test_name
+    Data Table( "SNR_table" ):Test_name 2 << Set Name( "Test_name" );
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "SNR_table" ) << Text to Columns(
+    	columns( :Pin_name ),
+    	Delimiters( "_" )
+    );
+
+    step_name = "Change column name: Pin_name 1 → Sample";
+    //Change column name: Pin_name 1 → Sample
+    Data Table( "SNR_table" ):Pin_name 1 << Set Name( "Sample" );
+
+    step_name = "Move selected column: Sample";
+    //Move selected column: Sample
+    Data Table( "SNR_table" ) << Move Selected Columns( {:Sample}, To Last );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "SNR_table" ) << Delete Columns( :Pin_name, :Pin_name 2 );
+
+    step_name = "Change column name: Pin_name 3 → Pin_name";
+    //Change column name: Pin_name 3 → Pin_name
+    Data Table( "SNR_table" ):Pin_name 3 << Set Name( "Pin_name" );
+
+    step_name = "Change column display width: Test_name";
+    //Change column display width: Test_name
+    Data Table( "SNR_table" ):Test_name << Set Display Width( 214 );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Process PD SNR";
+    //Process PD SNR
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "PD_SNR" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "PD_SNR" ) ) <<
+    Subset( Output Table( "PD_SNR" ), Selected Rows( 1 ), Selected columns only( 0 ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "PD_SNR" ) ) <<
+    Delete Rows;
+
+    step_name = "New column:COM_or_IND";
+    //New column:COM_or_IND
+    Data Table( "PD_SNR" ) << New Column( "COM_or_IND", Character, "Nominal" );
+
+    step_name = "Change column formula: COM_ind_IND";
+    //Change column formula: COM_ind_IND
+    Data Table( "PD_SNR" ):COM_or_IND << Set Formula(
+    	If( Contains( :Test_name, "COM" ),
+    		"COM",
+    		"IND"
+    	)
+    );
+
+    step_name = "Select matching cells";
+    //Select matching cells
+    Data Table( "PD_SNR" ) << Select Where( :Pin_name == "LX" );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "PD_SNR" ) << Select Where( :Pin_name == "LX" ) << Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "PD_SNR" ) << Select where( Contains( :Pin_name, "dB" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "PD_SNR" ) << Select where( Contains( :Pin_name, "dB" ) ) <<
+    Subset(
+    	Output Table( "PD_SNR_dB" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "PD_SNR" ) << Select where( Contains( :Pin_name, "dB" ) ) << Delete Rows;
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "PD_SNR_dB" ) << Text to Columns(
+    	columns( :Pin_name ),
+    	Delimiters( "_" )
+    );
+
+    step_name = "New column: Pin_name_temp";
+    //New column: Pin_name_temp
+    Data Table( "PD_SNR_dB" ) << New Column( "Pin_name_temp", Character, "Nominal" ) <<
+    Move Selected Columns( {:Pin_name_temp}, after( :Pin_name ) );
+
+    step_name = "Change column formula: Pin_name_temp";
+    //Change column formula: Pin_name_temp
+    Data Table( "PD_SNR_dB" ):Pin_name_temp <<
+    Set Formula( Substr( :Pin_name, Contains( :Pin_name, "_" ) + 1 ) );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "PD_SNR_dB" ) << RunFormulas;
+
+    step_name = "Delete column formula: Pin_name_temp";
+    //Delete column formula: Pin_name_temp
+    Data Table( "PD_SNR_dB" ):Pin_name_temp << Delete Formula;
+
+    step_name = "Delete column formula: COM_or_IND";
+    //Delete column formula: COM_or_IND
+    Data Table( "PD_SNR_dB" ):COM_or_IND << Delete Formula;
+
+    step_name = "Recode column: Test_name 2";
+    //Recode column: Test_name 2
+    Local( {dt, col1},
+    	dt = Data Table( "PD_SNR_dB" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Test_name );
+    	col1 << Set Name( "Test_name 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Test_name ) );
+    	dt << Recode Column(
+    		dt:Test_name,
+    		{Map Value(
+    			_rcOrig,
+    			{"PD_SNR_COM_0XA_20KHZ_RAW", "PD_SNR_0XA_20KHZ_dB",
+    			"PD_SNR_IND_0XA_20KHZ_RAW", "PD_SNR_0XA_20KHZ_dB"},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "PD_SNR_dB" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name 2 → Test_name";
+    //Change column name: Test_name 2 → Test_name
+    Data Table( "PD_SNR_dB" ):Test_name 2 << Set Name( "Test_name" );
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "PD_SNR_dB" ) << Delete Columns( :Pin_name );
+
+    step_name = "Change column name: Pin_name_temp → Pin_name";
+    //Change column name: Pin_name_temp → Pin_name
+    Data Table( "PD_SNR_dB" ):Pin_name_temp << Set Name( "Pin_name" );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "PD_SNR_dB" ) << Clear Row States;
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "PD_SNR" ) << RunFormulas;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "PD_SNR_dB" ) << Delete Columns( :Pin_name 2, :Pin_name 1, :Pin_name 3 );
+
+    step_name = "Now do the magnitude table";
+    //Now do the magnitude table
+    Data Table( "PD_SNR" ) << RunFormulas;
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "PD_SNR" ) << Text to Columns( columns( :Pin_name ), Delimiters( "_" ) );
+
+    step_name = "Change column name: Pin_name 1 → Sample";
+    //Change column name: Pin_name 1 → Sample
+    Data Table( "PD_SNR" ):Pin_name 1 << Set Name( "Sample" );
+
+    step_name = "Move selected column: Sample";
+    //Move selected column: Sample
+    Data Table( "PD_SNR" ) << Move Selected Columns( {:Sample}, To Last );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "PD_SNR" ) << Delete Columns( :Pin_name, :Pin_name 2 );
+
+    step_name = "New column: Column 14";
+    //New column: Column 14
+    Data Table( "PD_SNR" ) << New Column( "Column 14",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 14}, after( :Pin_name 4 ) );
+
+    step_name = "Change column info: Pin_name";
+    //Change column info: Pin_name
+    Data Table( "PD_SNR" ):Column 14 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Pin_name" );
+
+    step_name = "Change column formula: Pin_name";
+    //Change column formula: Pin_name
+    Data Table( "PD_SNR" ):Pin_name << Set Formula( :Pin_name 3 || "_" || :Pin_name 4 );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "PD_SNR" ) << RunFormulas;
+
+    step_name = "Delete column formula: Pin_name";
+    //Delete column formula: Pin_name
+    Data Table( "PD_SNR" ):Pin_name << Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "PD_SNR" ) << Delete Columns( :Pin_name 3, :Pin_name 4 );
+
+    step_name = "Recode column: Test_name 2";
+    //Recode column: Test_name 2
+    Local( {dt, col1},
+    	dt = Data Table( "PD_SNR" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Test_name );
+    	col1 << Set Name( "Test_name 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Test_name ) );
+    	dt << Recode Column(
+    		dt:Test_name,
+    		{Map Value(
+    			_rcOrig,
+    			{"PD_SNR_COM_0XA_20KHZ_RAW", "PD_SNR_0XA_20KHZ_RAW",
+    			"PD_SNR_IND_0XA_20KHZ_RAW", "PD_SNR_0XA_20KHZ_RAW"},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column formula: COM_or_IND";
+    //Delete column formula: COM_or_IND
+    Data Table( "PD_SNR" ):COM_or_IND << Delete Formula;
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "PD_SNR" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name 2 → Test_name";
+    //Change column name: Test_name 2 → Test_name
+    Data Table( "PD_SNR" ):Test_name 2 << Set Name( "Test_name" );
+
+    step_name =
+"Just concat the PD pins onto the regular table.  they shouldn't be seperate";
+    //Just concat the PD pins onto the regular table.  they shouldn't be seperate
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "SNR_table_dB" ) << Concatenate(
+    	Data Table( "PD_SNR_dB" ),
+    	Output Table( "Concat of SNR_table_dB, PD_SNR_dB" ),
+    	Append to first table
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "SNR_table" ) << Concatenate(
+    	Data Table( "PD_SNR" ),
+    	Output Table( "Concat of SNR_table, PD_SNR" ),
+    	Append to first table
+    );
+
+    step_name = "Recode column: Test_name";
+    //Recode column: Test_name
+    Local( {dt},
+    	dt = Data Table( "SNR_table" );
+    	dt << Begin Data Update;
+    	For Each Row(
+    		dt,
+    		dt:Test_name[] = Map Value(
+    			dt:Test_name,
+    			{"PD_SNR_0XA_20KHZ_RAW", "TOUCH_SNR_0XA_20KHZ_RAW"},
+    			Unmatched( dt:Test_name )
+    		)
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Sort data table";
+    //Sort data table
+    Data Table( "SNR_table" ) << Sort(
+    	By( :stdf_record_index ),
+    	Replace Table,
+    	Order( Ascending )
+    );
+
+    step_name = "Close Data Table: PD_SNR";
+    //Close Data Table: PD_SNR
+    Close( Data Table( "PD_SNR" ), NoSave );
+
+    step_name = "Recode column: Test_name";
+    //Recode column: Test_name
+    Local( {dt},
+    	dt = Data Table( "SNR_table_dB" );
+    	dt << Begin Data Update;
+    	For Each Row(
+    		dt,
+    		dt:Test_name[] = Map Value(
+    			dt:Test_name,
+    			{"PD_SNR_0XA_20KHZ_dB", "TOUCH_SNR_0XA_20KHZ_RAW"},
+    			Unmatched( dt:Test_name )
+    		)
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Sort data table";
+    //Sort data table
+    Data Table( "SNR_table_dB" ) << Sort(
+    	By( :stdf_record_index ),
+    	Replace Table,
+    	Order( Ascending )
+    );
+
+    step_name = "Close Data Table: PD_SNR_dB";
+    //Close Data Table: PD_SNR_dB
+    Close( Data Table( "PD_SNR_dB" ), NoSave );
+
+    step_name = "Process TX drv current";
+    //Process TX drv current
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row selection";
+    //Clear row selection
+    Data Table( "Source_table" ) << Clear Select;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "TX_DRV_CURRENT" )
+    );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "TX_DRV_CURRENT" )
+    ) << Subset(
+    	Output Table( "TX_DRV_CURRENT" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "TX_DRV_CURRENT" )
+    ) << Delete Rows;
+
+    step_name = "Select matching cells";
+    //Select matching cells
+    Data Table( "TX_DRV_CURRENT" ) << Select Where( :Pin_name == "LX" );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "TX_DRV_CURRENT" ) << Select Where( :Pin_name == "LX" ) << Delete Rows;
+
+    step_name = "New column: Tx_drv_setting";
+    //New column: Tx_drv_setting
+    Data Table( "TX_DRV_CURRENT" ) << New Column( "Tx_drv_setting",
+    	Character,
+    	"Nominal"
+    ) << Move Selected Columns( {:Tx_drv_setting}, after( :Pin_name ) );
+
+    step_name = "Change column formula: Tx_drv_setting";
+    //Change column formula: Tx_drv_setting
+    Data Table( "TX_DRV_CURRENT" ):Tx_drv_setting <<
+    Set Formula( Substr( :Test_name, 16, 2 ) );
+
+    step_name = "Move selected column: Tx_drv_setting";
+    //Move selected column: Tx_drv_setting
+    Data Table( "TX_DRV_CURRENT" ) <<
+    Move Selected Columns( {:Tx_drv_setting}, To Last );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "TX_DRV_CURRENT" ) << RunFormulas;
+
+    step_name = "Delete column formula: Tx_drv_setting";
+    //Delete column formula: Tx_drv_setting
+    Data Table( "TX_DRV_CURRENT" ):Tx_drv_setting << Delete Formula;
+
+    step_name = "New column: Column 13";
+    //New column: Column 13
+    Data Table( "TX_DRV_CURRENT" ) << New Column( "Column 13",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 13}, after( :Pin_name ) );
+
+    step_name = "Change column info: Pin_name2";
+    //Change column info: Pin_name2
+    Data Table( "TX_DRV_CURRENT" ):Column 13 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Pin_name2" );
+
+    step_name = "Change column formula: Pin_name2";
+    //Change column formula: Pin_name2
+    Data Table( "TX_DRV_CURRENT" ):Pin_name2 << Set Formula( Substr( :Pin_name, 5, 5 ) );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "TX_DRV_CURRENT" ) << RunFormulas;
+
+    step_name = "Delete column formula: Pin_name2";
+    //Delete column formula: Pin_name2
+    Data Table( "TX_DRV_CURRENT" ):Pin_name2 << Delete Formula;
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "TX_DRV_CURRENT" ) << Delete Columns( :Pin_name );
+
+    step_name = "Change column name: Pin_name2 → Pin_name";
+    //Change column name: Pin_name2 → Pin_name
+    Data Table( "TX_DRV_CURRENT" ):Pin_name2 << Set Name( "Pin_name" );
+
+    step_name = "Recode column: Test_name 2";
+    //Recode column: Test_name 2
+    Local( {dt, col1},
+    	dt = Data Table( "TX_DRV_CURRENT" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Test_name );
+    	col1 << Set Name( "Test_name 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Test_name ) );
+    	dt << Recode Column(
+    		dt:Test_name,
+    		{Map Value(
+    			_rcOrig,
+    			{"TX_DRV_CURRENT_00_RAW", "TX_DRV_CURRENT_RAW", "TX_DRV_CURRENT_01_RAW",
+    			"TX_DRV_CURRENT_RAW", "TX_DRV_CURRENT_02_RAW", "TX_DRV_CURRENT_RAW",
+    			"TX_DRV_CURRENT_04_RAW", "TX_DRV_CURRENT_RAW", "TX_DRV_CURRENT_08_RAW",
+    			"TX_DRV_CURRENT_RAW", "TX_DRV_CURRENT_10_RAW", "TX_DRV_CURRENT_RAW",
+    			"TX_DRV_CURRENT_20_RAW", "TX_DRV_CURRENT_RAW"},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Recode column: Test_name";
+    //Recode column: Test_name
+    Local( {dt},
+    	dt = Data Table( "TX_DRV_CURRENT" );
+    	dt << Begin Data Update;
+    	For Each Row(
+    		dt,
+    		dt:Test_name 2[] = Map Value(
+    			dt:Test_name 2,
+    			{"TX_DRV_CURRENT_08_RAW_EX", "TX_DRV_CURRENT_RAW"},
+    			Unmatched( dt:Test_name 2 )
+    		)
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "TX_DRV_CURRENT" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name 2 → Test_name";
+    //Change column name: Test_name 2 → Test_name
+    Data Table( "TX_DRV_CURRENT" ):Test_name 2 << Set Name( "Test_name" );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "TX_LPF_TEST_RAW" )
+    );
+
+    step_name = "Process TX_LPF ";
+    //Process TX_LPF 
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "TX_LPF" ) ) <<
+    Subset(
+    	Output Table( "TX_LPF_TEST_RAW" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( :Test_name == "TX_LPF_TEST_RAW" ) <<
+    Delete Rows;
+
+    step_name = "Rename data table: TX_LPF_TEST_RAW → TX_LPF";
+    //Rename data table: TX_LPF_TEST_RAW → TX_LPF
+    Data Table( "TX_LPF_TEST_RAW" ) << Set Name( "TX_LPF" );
+
+    step_name = "Select matching cells";
+    //Select matching cells
+    Data Table( "TX_LPF" ) << Select Where( :Pin_name == "LX" );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "TX_LPF" ) << Select Where( :Pin_name == "LX" ) << Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "TX_LPF" ) << Select where( Contains( :Pin_name, "dB" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "TX_LPF" ) << Select where( Contains( :Pin_name, "dB" ) ) <<
+    Subset(
+    	Output Table( "TX_LPF_dB" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "TX_LPF" ) << Select where( Contains( :Pin_name, "dB" ) ) << Delete Rows;
+
+    step_name = "New column: Column 13";
+    //New column: Column 13
+    Data Table( "TX_LPF_dB" ) << New Column( "Column 13",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 13}, after( :Pin_name ) );
+
+    step_name = "Change column info: Pin_name2";
+    //Change column info: Pin_name2
+    Data Table( "TX_LPF_dB" ):Column 13 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Pin_name2" );
+
+    step_name = "Change column formula: Pin_name2";
+    //Change column formula: Pin_name2
+    Data Table( "TX_LPF_dB" ):Pin_name2 << Set Formula( Substr( :Pin_name, 4, 5 ) );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "TX_LPF_dB" ) << RunFormulas;
+
+    step_name = "Delete column formula: Pin_name2";
+    //Delete column formula: Pin_name2
+    Data Table( "TX_LPF_dB" ):Pin_name2 << Delete Formula;
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "TX_LPF_dB" ) << Delete Columns( :Pin_name );
+
+    step_name = "Change column name: Pin_name2 → Pin_name";
+    //Change column name: Pin_name2 → Pin_name
+    Data Table( "TX_LPF_dB" ):Pin_name2 << Set Name( "Pin_name" );
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "TX_LPF" ) << Text to Columns( columns( :Pin_name ), Delimiters( "_" ) );
+
+    step_name = "Change column name: Pin_name 1 → Freq";
+    //Change column name: Pin_name 1 → Freq
+    Data Table( "TX_LPF" ):Pin_name 1 << Set Name( "Freq" );
+
+    step_name = "Delete column: Pin_name 2";
+    //Delete column: Pin_name 2
+    Data Table( "TX_LPF" ) << Delete Columns( :Pin_name 2 );
+
+    step_name = "New column: Column 16";
+    //New column: Column 16
+    Data Table( "TX_LPF" ) << New Column( "Column 16",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 16}, after( :Pin_name 4 ) );
+
+    step_name = "Change column formula: Column 16";
+    //Change column formula: Column 16
+    Data Table( "TX_LPF" ):Column 16 << Set Formula(
+    	If( !Is Missing( :Pin_name 4 ),
+    		:Pin_name 3 || "_" || :Pin_name 4,
+    		:Pin_name 3
+    	)
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "TX_LPF" ) << RunFormulas;
+
+    step_name = "Delete column formula: Column 16";
+    //Delete column formula: Column 16
+    Data Table( "TX_LPF" ):Column 16 << Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "TX_LPF" ) << Delete Columns( :Pin_name 3, :Pin_name 4 );
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "TX_LPF" ) << Delete Columns( :Pin_name );
+
+    step_name = "Change column name: Column 16 → Pin_name";
+    //Change column name: Column 16 → Pin_name
+    Data Table( "TX_LPF" ):Column 16 << Set Name( "Pin_name" );
+
+    step_name = "Move selected column: Freq";
+    //Move selected column: Freq
+    Data Table( "TX_LPF" ) << Move Selected Columns( {:Freq}, To Last );
+
+    step_name = "Recode column: Test_name 2";
+    //Recode column: Test_name 2
+    Local( {dt, col1},
+    	dt = Data Table( "TX_LPF_dB" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Test_name );
+    	col1 << Set Name( "Test_name 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Test_name ) );
+    	dt << Recode Column(
+    		dt:Test_name,
+    		{Map Value(
+    			_rcOrig,
+    			{"TX_LPF_TEST_RAW", "TX_LPF_TEST_RAW_dB"},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "TX_LPF_dB" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name 2 → Test_name";
+    //Change column name: Test_name 2 → Test_name
+    Data Table( "TX_LPF_dB" ):Test_name 2 << Set Name( "Test_name" );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Process BGA continuity (analog continuity)";
+    //Process BGA continuity (analog continuity)
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "BGA_CONTINUITY_RAW" )
+    );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "BGA_CONTINUITY_RAW" )
+    ) << Subset(
+    	Output Table( "BGA_Continuity" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( :Test_name == "BGA_CONTINUITY_RAW" )
+     << Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "BGA_Continuity" ) << Select where( Contains( :Pin_name, "Magnitude" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "BGA_Continuity" ) << Select where( Contains( :Pin_name, "Magnitude" ) )
+     << Subset(
+    	Output Table( "BGA_Continuity_just_limits" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "BGA_Continuity" ) << Select where( Contains( :Pin_name, "Magnitude" ) )
+     << Delete Rows;
+
+    step_name = "New formula column: Concatenate[Test_name,Pin_name]";
+    //New formula column: Concatenate[Test_name,Pin_name]
+    Data Table( "BGA_Continuity_just_limits" ) <<
+    New Formula Column(
+    	Operation( Category( "Character" ), "Concatenate with Underscore" ),
+    	Columns( :Test_name, :Pin_name )
+    );
+
+    step_name = "Change column display width: Concatenate[Test_name,Pin_name]";
+    //Change column display width: Concatenate[Test_name,Pin_name]
+    Data Table( "BGA_Continuity_just_limits" ):"Concatenate[Test_name,Pin_name]"n <<
+    Set Display Width( 286 );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "BGA_Continuity_just_limits" ) << RunFormulas;
+
+    step_name = "Delete column formula: Concatenate[Test_name,Pin_name]";
+    //Delete column formula: Concatenate[Test_name,Pin_name]
+    Data Table( "BGA_Continuity_just_limits" ):"Concatenate[Test_name,Pin_name]"n <<
+    Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "BGA_Continuity_just_limits" ) <<
+    Delete Columns( :Test_name, :Pin_name );
+
+    step_name = "Change column name: Concatenate[Test_name,Pin_name] → Test_name";
+    //Change column name: Concatenate[Test_name,Pin_name] → Test_name
+    Data Table( "BGA_Continuity_just_limits" ):"Concatenate[Test_name,Pin_name]"n <<
+    Set Name( "Test_name" );
+
+    step_name = "New column: Column 12";
+    //New column: Column 12
+    Data Table( "BGA_Continuity_just_limits" ) <<
+    New Column( "Column 12", Numeric, "Continuous", Format( "Best", 12 ), Set Selected )
+     << Move Selected Columns( {:Column 12}, after( :Test_name ) );
+
+    step_name = "Change column info: Pin_name";
+    //Change column info: Pin_name
+    Data Table( "BGA_Continuity_just_limits" ):Column 12 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Pin_name" );
+
+    step_name = "Select matching cells";
+    //Select matching cells
+    Data Table( "BGA_Continuity" ) << Select Where( :Pin_name == "LX" );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "BGA_Continuity" ) << Select Where( :Pin_name == "LX" ) << Delete Rows;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "BGA_Continuity" ) << Clear Row States;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "BGA_Continuity" ) << Select where( Contains( :Pin_name, "PD_" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "BGA_Continuity" ) << Select where( Contains( :Pin_name, "PD_" ) ) <<
+    Subset(
+    	Output Table( "BGA_Continuity_just_PD" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "BGA_Continuity" ) << Select where( Contains( :Pin_name, "PD_" ) ) <<
+    Delete Rows;
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "BGA_Continuity" ) << Text to Columns(
+    	columns( :Pin_name ),
+    	Delimiters( "_" )
+    );
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "BGA_Continuity" ) << Delete Columns( :Pin_name );
+
+    step_name = "Change column name: Pin_name 1 → Pin_name";
+    //Change column name: Pin_name 1 → Pin_name
+    Data Table( "BGA_Continuity" ):Pin_name 1 << Set Name( "Pin_name" );
+
+    step_name = "New formula column: Concatenate[Test_name,Pin_name 2]";
+    //New formula column: Concatenate[Test_name,Pin_name 2]
+    Data Table( "BGA_Continuity" ) << New Formula Column(
+    	Operation( Category( "Character" ), "Concatenate with Underscore" ),
+    	Columns( :Test_name, :Pin_name 2 )
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "BGA_Continuity" ) << RunFormulas;
+
+    step_name = "Delete column formula: Concatenate[Test_name,Pin_name 2]";
+    //Delete column formula: Concatenate[Test_name,Pin_name 2]
+    Data Table( "BGA_Continuity" ):"Concatenate[Test_name,Pin_name 2]"n <<
+    Delete Formula;
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "BGA_Continuity" ) << Delete Columns( :Test_name, :Pin_name 2 );
+
+    step_name = "Move selected column: Concatenate[Test_name,Pin_name 2]";
+    //Move selected column: Concatenate[Test_name,Pin_name 2]
+    Data Table( "BGA_Continuity" ) <<
+    Move Selected Columns( {:"Concatenate[Test_name,Pin_name 2]"n}, after( :result ) );
+
+    step_name = "Change column name: Concatenate[Test_name,Pin_name 2] → Test_name";
+    //Change column name: Concatenate[Test_name,Pin_name 2] → Test_name
+    Data Table( "BGA_Continuity" ):"Concatenate[Test_name,Pin_name 2]"n <<
+    Set Name( "Test_name" );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "BGA_Continuity" ) << Concatenate(
+    	Data Table( "BGA_Continuity_just_limits" ),
+    	Data Table( "BGA_Continuity_just_PD" ),
+    	Output Table( "BGA_Continuity_concat_out" )
+    );
+
+    step_name = "Close Data Table: BGA_Continuity_just_limits";
+    //Close Data Table: BGA_Continuity_just_limits
+    Close( Data Table( "BGA_Continuity_just_limits" ), NoSave );
+
+    step_name = "Close Data Table: BGA_Continuity_just_PD";
+    //Close Data Table: BGA_Continuity_just_PD
+    Close( Data Table( "BGA_Continuity_just_PD" ), NoSave );
+
+    step_name = "Sort data table";
+    //Sort data table
+    Data Table( "BGA_Continuity_concat_out" ) << Sort(
+    	By( :stdf_record_index ),
+    	Replace Table,
+    	Order( Ascending )
+    );
+
+    step_name = "Change column display width: Test_name";
+    //Change column display width: Test_name
+    Data Table( "BGA_Continuity_concat_out" ):Test_name << Set Display Width( 275 );
+
+    step_name = "Close Data Table: BGA_Continuity";
+    //Close Data Table: BGA_Continuity
+    Close( Data Table( "BGA_Continuity" ), NoSave );
+
+    step_name = "Rename data table: BGA_Continuity_concat_out → BGA_Continuity";
+    //Rename data table: BGA_Continuity_concat_out → BGA_Continuity
+    Data Table( "BGA_Continuity_concat_out" ) << Set Name( "BGA_Continuity" );
+
+    step_name = "Process analog leakage";
+    //Process analog leakage
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "ANALOG_LEAKAGE" )
+    );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "ANALOG_LEAKAGE" )
+    ) << Subset(
+    	Output Table( "Analog_leakage" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( :Test_name == "ANALOG_LEAKAGE_RAW" )
+     << Delete Rows;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Analog_leakage" ) << Clear Row States;
+
+    step_name = "Select matching cells";
+    //Select matching cells
+    Data Table( "Analog_leakage" ) << Select Where( :Pin_name == "LX" );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Analog_leakage" ) << Select Where( :Pin_name == "LX" ) << Delete Rows;
+
+    step_name = "New column: Column 13";
+    //New column: Column 13
+    Data Table( "Analog_leakage" ) << New Column( "Column 13",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 13}, after( :Pin_name ) );
+
+    step_name = "Change column info: Pin_name2";
+    //Change column info: Pin_name2
+    Data Table( "Analog_leakage" ):Column 13 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Pin_name2" );
+
+    step_name = "Change column formula: Pin_name2";
+    //Change column formula: Pin_name2
+    Data Table( "Analog_leakage" ):Pin_name2 << Set Formula( Substr( :Pin_name, 5, 5 ) );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Analog_leakage" ) << RunFormulas;
+
+    step_name = "Delete column formula: Pin_name2";
+    //Delete column formula: Pin_name2
+    Data Table( "Analog_leakage" ):Pin_name2 << Delete Formula;
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "Analog_leakage" ) << Delete Columns( :Pin_name );
+
+    step_name = "Change column name: Pin_name2 → Pin_name";
+    //Change column name: Pin_name2 → Pin_name
+    Data Table( "Analog_leakage" ):Pin_name2 << Set Name( "Pin_name" );
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Analog_leakage" ) << Select where( Is Missing( :Pin_name ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Analog_leakage" ) << Select where( Is Missing( :Pin_name ) ) <<
+    Delete Rows;
+
+    step_name = "Process clock tests";
+    //Process clock tests
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "CLOCK_TEST" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "CLOCK_TEST" ) )
+     << Subset(
+    	Output Table( "Clock_test_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "CLOCK_TEST" ) )
+     << Delete Rows;
+
+    step_name = "New column: Freq";
+    //New column: Freq
+    Data Table( "Clock_test_table" ) << New Column( "Freq", Character, "Nominal" );
+
+    step_name = "Change column display width: Test_name";
+    //Change column display width: Test_name
+    Data Table( "Clock_test_table" ):Test_name << Set Display Width( 247 );
+
+    step_name = "Change column formula: Freq";
+    //Change column formula: Freq
+    Data Table( "Clock_test_table" ):Freq << Set Formula( :Pin_name );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Clock_test_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: Freq";
+    //Delete column formula: Freq
+    Data Table( "Clock_test_table" ):Freq << Delete Formula;
+
+    step_name = "Recode column: Pin_name 2";
+    //Recode column: Pin_name 2
+    Local( {dt, col1},
+    	dt = Data Table( "Clock_test_table" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Pin_name );
+    	col1 << Set Name( "Pin_name 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Pin_name ) );
+    	dt << Recode Column(
+    		dt:Pin_name,
+    		{Map Value(
+    			_rcOrig,
+    			{"12MHz", "", "24MHz", "", "6MHz", ""},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "Clock_test_table" ) << Delete Columns( :Pin_name );
+
+    step_name = "Change column name: Pin_name 2 → Pin_name";
+    //Change column name: Pin_name 2 → Pin_name
+    Data Table( "Clock_test_table" ):Pin_name 2 << Set Name( "Pin_name" );
+
+    step_name = "Process regulator tests";
+    //Process regulator tests
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "REG" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "REG" ) ) <<
+    Subset(
+    	Output Table( "Reg_test_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( Contains( :Test_name, "REG" ) ) <<
+    Delete Rows;
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "Reg_test_table" ) << Text to Columns(
+    	columns( :Pin_name ),
+    	Delimiters( "_" )
+    );
+
+    step_name = "Delete column: Pin_name";
+    //Delete column: Pin_name
+    Data Table( "Reg_test_table" ) << Delete Columns( :Pin_name );
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "Reg_test_table" ) << Text to Columns(
+    	columns( :Test_name ),
+    	Delimiters( "_" )
+    );
+
+    step_name = "Delete column: Test_name 2";
+    //Delete column: Test_name 2
+    Data Table( "Reg_test_table" ) << Delete Columns( :Test_name 2 );
+
+    step_name = "Recode column: Pin_name 2 2";
+    //Recode column: Pin_name 2 2
+    Local( {dt, col1},
+    	dt = Data Table( "Reg_test_table" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Pin_name 2 );
+    	col1 << Set Name( "Pin_name 2 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Pin_name 2 ) );
+    	dt << Recode Column(
+    		dt:Pin_name 2,
+    		{Map Value( _rcOrig, {"", "0mA"}, Unmatched( _rcNow ) )},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column: Pin_name 2";
+    //Delete column: Pin_name 2
+    Data Table( "Reg_test_table" ) << Delete Columns( :Pin_name 2 );
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "Reg_test_table" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Pin_name 2 2 → Load";
+    //Change column name: Pin_name 2 2 → Load
+    Data Table( "Reg_test_table" ):Pin_name 2 2 << Set Name( "Load" );
+
+    step_name = "Move selected column: Load";
+    //Move selected column: Load
+    Data Table( "Reg_test_table" ) << Move Selected Columns( {:Load}, To Last );
+
+    step_name = "Change column name: Test_name 1 → Test_name";
+    //Change column name: Test_name 1 → Test_name
+    Data Table( "Reg_test_table" ):Test_name 1 << Set Name( "Test_name" );
+
+    step_name = "Change column name: Pin_name 1 → Pin_name";
+    //Change column name: Pin_name 1 → Pin_name
+    Data Table( "Reg_test_table" ):Pin_name 1 << Set Name( "Pin_name" );
+
+    step_name = "Process VOx";
+    //Process VOx
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "VOL" ) | Contains( :Test_name, "VOH" )
+    );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "VOL" ) | Contains( :Test_name, "VOH" )
+    ) << Subset(
+    	Output Table( "VOx_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where(
+    	Contains( :Test_name, "VOL" ) | Contains( :Test_name, "VOH" )
+    ) << Delete Rows;
+
+    step_name = "Text to columns";
+    //Text to columns
+    Data Table( "VOx_table" ) << Text to Columns(
+    	columns( :Test_name ),
+    	Delimiters( "_" )
+    );
+
+    step_name = "Recode column: Test_name 2 2";
+    //Recode column: Test_name 2 2
+    Local( {dt, col1},
+    	dt = Data Table( "VOx_table" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Test_name 2 );
+    	col1 << Set Name( "Test_name 2 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Test_name 2 ) );
+    	dt << Recode Column(
+    		dt:Test_name 2,
+    		{Map Value( _rcOrig, {"", "0mA"}, Unmatched( _rcNow ) )},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column: Test_name 2";
+    //Delete column: Test_name 2
+    Data Table( "VOx_table" ) << Delete Columns( :Test_name 2 );
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "VOx_table" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name 1 → Test_name";
+    //Change column name: Test_name 1 → Test_name
+    Data Table( "VOx_table" ):Test_name 1 << Set Name( "Test_name" );
+
+    step_name = "Change column name: Test_name 2 2 → Test_name 2";
+    //Change column name: Test_name 2 2 → Test_name 2
+    Data Table( "VOx_table" ):Test_name 2 2 << Set Name( "Test_name 2" );
+
+    step_name = "Change column name: Test_name 2 → Load";
+    //Change column name: Test_name 2 → Load
+    Data Table( "VOx_table" ):Test_name 2 << Set Name( "Load" );
+
+    step_name = "Move selected column: Load";
+    //Move selected column: Load
+    Data Table( "VOx_table" ) << Move Selected Columns( {:Load}, To Last );
+
+    step_name = "Process temp sensor";
+    //Process temp sensor
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Source_table" ) << Select where( :Test_name == "TEMP_SENSOR" );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Source_table" ) << Select where( :Test_name == "TEMP_SENSOR" ) <<
+    Subset(
+    	Output Table( "Temp_sensor_table" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Source_table" ) << Select where( :Test_name == "TEMP_SENSOR" ) <<
+    Delete Rows;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Temp_sensor_table" ) << Select where( Contains( :Pin_name, "C" ) );
+
+    step_name = "Subset data table";
+    //Subset data table
+    Data Table( "Temp_sensor_table" ) << Select where( Contains( :Pin_name, "C" ) ) <<
+    Subset(
+    	Output Table( "Temp_sensor_table_celcius" ),
+    	Selected Rows( 1 ),
+    	Selected columns only( 0 )
+    );
+
+    step_name = "Clear row selection";
+    //Clear row selection
+    Data Table( "Temp_sensor_table" ) << Clear Select;
+
+    step_name = "Select where";
+    //Select where
+    Data Table( "Temp_sensor_table" ) << Select where( Contains( :Pin_name, "C" ) );
+
+    step_name = "Delete selected rows";
+    //Delete selected rows
+    Data Table( "Temp_sensor_table" ) << Select where( Contains( :Pin_name, "C" ) ) <<
+    Delete Rows;
+
+    step_name = "Recode column: Test_name 2";
+    //Recode column: Test_name 2
+    Local( {dt, col1},
+    	dt = Data Table( "Temp_sensor_table_celcius" );
+    	dt << Begin Data Update;
+    	col1 = dt << New Column( dt:Test_name );
+    	col1 << Set Name( "Test_name 2" );
+    	dt << Move Selected Columns( {col1}, after( dt:Test_name ) );
+    	dt << Recode Column(
+    		dt:Test_name,
+    		{Map Value( _rcOrig, {"TEMP_SENSOR", "TEMP_SENSOR_C"}, Unmatched( _rcNow ) )
+    		},
+    		Update Properties( 1 ),
+    		Target Column( col1 )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete column: Test_name";
+    //Delete column: Test_name
+    Data Table( "Temp_sensor_table_celcius" ) << Delete Columns( :Test_name );
+
+    step_name = "Change column name: Test_name 2 → Test_name";
+    //Change column name: Test_name 2 → Test_name
+    Data Table( "Temp_sensor_table_celcius" ):Test_name 2 << Set Name( "Test_name" );
+
+    step_name = "Recode column: Pin_name";
+    //Recode column: Pin_name
+    Local( {dt},
+    	dt = Data Table( "Temp_sensor_table_celcius" );
+    	dt << Begin Data Update;
+    	dt << Recode Column(
+    		dt:Pin_name,
+    		{Map Value(
+    			_rcOrig,
+    			{"TEMP0C", "TEMP0", "TEMP1C", "TEMP1"},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( :Pin_name )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Temp_sensor_table" ) << Concatenate(
+    	Data Table( "Temp_sensor_table_celcius" ),
+    	Output Table( "Untitled 8.jmp" ),
+    	Append to first table
+    );
+
+    step_name = "Sort data table";
+    //Sort data table
+    Data Table( "Temp_sensor_table" ) << Sort(
+    	By( :stdf_record_index ),
+    	Replace Table,
+    	Order( Ascending )
+    );
+
+    step_name = "Close Data Table: Temp_sensor_table_celcius";
+    //Close Data Table: Temp_sensor_table_celcius
+    Close( Data Table( "Temp_sensor_table_celcius" ), NoSave );
+
+    step_name = "At this point the source table is basically formatted ok";
+    //At this point the source table is basically formatted ok
+
+    step_name = "But split them out for aggregating purposes";
+    //But split them out for aggregating purposes
+
+    step_name = "Aggregate_SNR_dB";
+    //Aggregate_SNR_dB
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Open Data Table: SNR_table_dB_aggregate.jmp";
+    //Open Data Table: SNR_table_dB_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/SNR_table_dB_aggregate.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "SNR_table_dB_aggregate" ) << Concatenate(
+    	Data Table( "SNR_table_dB" ),
+    	Output Table( "Concat of SNR_table_dB_aggregate, SNR_table_dB" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: SNR_table_dB_aggregate.jmp";
+    //Save data table: SNR_table_dB_aggregate.jmp
+    Data Table( "SNR_table_dB_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/SNR_table_dB_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: SNR_table_dB_aggregate";
+    //Close Data Table: SNR_table_dB_aggregate
+    Close( Data Table( "SNR_table_dB_aggregate" ), NoSave );
+
+    step_name = "Aggregate SNR_mag";
+    //Aggregate SNR_mag
+
+    step_name = "Open Data Table: SNR_table_mag_aggregate.jmp";
+    //Open Data Table: SNR_table_mag_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/SNR_table_mag_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "SNR_table_mag_aggregate" ) << Set Row ID Width( 117 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "SNR_table_mag_aggregate" ) <<
+    Concatenate(
+    	Data Table( "SNR_table" ),
+    	Output Table( "Concat of SNR_table_mag_aggregate, SNR_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: SNR_table_mag_aggregate.jmp";
+    //Save data table: SNR_table_mag_aggregate.jmp
+    Data Table( "SNR_table_mag_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/SNR_table_mag_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: SNR_table_mag_aggregate";
+    //Close Data Table: SNR_table_mag_aggregate
+    Close( Data Table( "SNR_table_mag_aggregate" ), NoSave );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Aggregate_Harm_dist_dB";
+    //Aggregate_Harm_dist_dB
+
+    step_name = "Open Data Table: Harm_dist_dB_aggregate.jmp";
+    //Open Data Table: Harm_dist_dB_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Harm_dist_dB_aggregate.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Harm_dist_dB_aggregate" ) << Concatenate(
+    	Data Table( "Harm_dist_dB" ),
+    	Output Table( "Concat of Harm_dist_dB_aggregate, Harm_dist_dB" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: Harm_dist_dB_aggregate.jmp";
+    //Save data table: Harm_dist_dB_aggregate.jmp
+    Data Table( "Harm_dist_dB_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Harm_dist_dB_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: Harm_dist_dB_aggregate";
+    //Close Data Table: Harm_dist_dB_aggregate
+    Close( Data Table( "Harm_dist_dB_aggregate" ), NoSave );
+
+    step_name = "Aggregate_Harm_dist_mag";
+    //Aggregate_Harm_dist_mag
+
+    step_name = "Open Data Table: Harm_dist_mag_aggregate.jmp";
+    //Open Data Table: Harm_dist_mag_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Harm_dist_mag_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "Harm_dist_mag_aggregate" ) << Set Row ID Width( 110 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Harm_dist_mag_aggregate" ) <<
+    Concatenate(
+    	Data Table( "Harm_dist_mag" ),
+    	Output Table( "Concat of Harm_dist_mag_aggregate, Harm_dist_mag" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: Harm_dist_mag_aggregate.jmp";
+    //Save data table: Harm_dist_mag_aggregate.jmp
+    Data Table( "Harm_dist_mag_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Harm_dist_mag_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: Harm_dist_mag_aggregate";
+    //Close Data Table: Harm_dist_mag_aggregate
+    Close( Data Table( "Harm_dist_mag_aggregate" ), NoSave );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Aggregate_TX_LPF";
+    //Aggregate_TX_LPF
+
+    step_name = "Open Data Table: TX_LPF_aggregate.jmp";
+    //Open Data Table: TX_LPF_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_LPF_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "TX_LPF_aggregate" ) << Set Row ID Width( 104 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "TX_LPF_aggregate" ) << Concatenate(
+    	Data Table( "TX_LPF" ),
+    	Output Table( "Concat of TX_LPF_aggregate, TX_LPF" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: TX_LPF_aggregate.jmp";
+    //Save data table: TX_LPF_aggregate.jmp
+    Data Table( "TX_LPF_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_LPF_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: TX_LPF_aggregate";
+    //Close Data Table: TX_LPF_aggregate
+    Close( Data Table( "TX_LPF_aggregate" ), NoSave );
+
+    step_name = "Aggregate_TX_LPF_dB";
+    //Aggregate_TX_LPF_dB
+
+    step_name = "Open Data Table: TX_LPF_dB_aggregate.jmp";
+    //Open Data Table: TX_LPF_dB_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_LPF_dB_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "TX_LPF_dB_aggregate" ) << Set Row ID Width( 104 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "TX_LPF_dB_aggregate" ) << Concatenate(
+    	Data Table( "TX_LPF_dB" ),
+    	Output Table( "Concat of TX_LPF_dB_aggregate, TX_LPF_dB" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: TX_LPF_dB_aggregate.jmp";
+    //Save data table: TX_LPF_dB_aggregate.jmp
+    Data Table( "TX_LPF_dB_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_LPF_dB_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: TX_LPF_dB_aggregate";
+    //Close Data Table: TX_LPF_dB_aggregate
+    Close( Data Table( "TX_LPF_dB_aggregate" ), NoSave );
+
+    step_name = "Aggregate_Temp_sensor";
+    //Aggregate_Temp_sensor
+
+    step_name = "Open Data Table: Temp_sensor_aggregate.jmp";
+    //Open Data Table: Temp_sensor_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Temp_sensor_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "Temp_sensor_aggregate" ) << Set Row ID Width( 91 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Temp_sensor_aggregate" ) << Concatenate(
+    	Data Table( "Temp_sensor_table" ),
+    	Output Table( "Concat of Temp_sensor_aggregate, Temp_sensor_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: Temp_sensor_aggregate.jmp";
+    //Save data table: Temp_sensor_aggregate.jmp
+    Data Table( "Temp_sensor_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Temp_sensor_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: Temp_sensor_aggregate";
+    //Close Data Table: Temp_sensor_aggregate
+    Close( Data Table( "Temp_sensor_aggregate" ), NoSave );
+
+    step_name = "Aggregate_VOx";
+    //Aggregate_VOx
+
+    step_name = "Open Data Table: VOx_aggregate.jmp";
+    //Open Data Table: VOx_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/VOx_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "VOx_aggregate" ) << Set Row ID Width( 104 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "VOx_aggregate" ) << Concatenate(
+    	Data Table( "VOx_table" ),
+    	Output Table( "Concat of VOx_aggregate, VOx_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: VOx_aggregate.jmp";
+    //Save data table: VOx_aggregate.jmp
+    Data Table( "VOx_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/VOx_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: VOx_aggregate";
+    //Close Data Table: VOx_aggregate
+    Close( Data Table( "VOx_aggregate" ), NoSave );
+
+    step_name = "Aggregate_regulator_tests";
+    //Aggregate_regulator_tests
+
+    step_name = "Open Data Table: Reg_test_aggregate.jmp";
+    //Open Data Table: Reg_test_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Reg_test_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "Reg_test_aggregate" ) << Set Row ID Width( 97 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Reg_test_aggregate" ) << Concatenate(
+    	Data Table( "Reg_test_table" ),
+    	Output Table( "Concat of Reg_test_aggregate, Reg_test_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: Reg_test_aggregate.jmp";
+    //Save data table: Reg_test_aggregate.jmp
+    Data Table( "Reg_test_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Reg_test_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: Reg_test_aggregate";
+    //Close Data Table: Reg_test_aggregate
+    Close( Data Table( "Reg_test_aggregate" ), NoSave );
+
+    step_name = "Aggregate_clock_tests";
+    //Aggregate_clock_tests
+
+    step_name = "Open Data Table: Clock_test_aggregate.jmp";
+    //Open Data Table: Clock_test_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Clock_test_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "Clock_test_aggregate" ) << Set Row ID Width( 97 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Clock_test_aggregate" ) << Concatenate(
+    	Data Table( "Clock_test_table" ),
+    	Output Table( "Concat of Clock_test_aggregate, Clock_test_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: Clock_test_aggregate.jmp";
+    //Save data table: Clock_test_aggregate.jmp
+    Data Table( "Clock_test_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Clock_test_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: Clock_test_aggregate";
+    //Close Data Table: Clock_test_aggregate
+    Close( Data Table( "Clock_test_aggregate" ), NoSave );
+
+    step_name = "Aggregate_leakage";
+    //Aggregate_leakage
+
+    step_name = "Open Data Table: Analog_leakage_aggregate.jmp";
+    //Open Data Table: Analog_leakage_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Analog_leakage_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "Analog_leakage_aggregate" ) << Set Row ID Width( 104 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Analog_leakage_aggregate" ) <<
+    Concatenate(
+    	Data Table( "Analog_leakage" ),
+    	Output Table( "Concat of Analog_leakage_aggregate, Analog_leakage" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: Analog_leakage_aggregate.jmp";
+    //Save data table: Analog_leakage_aggregate.jmp
+    Data Table( "Analog_leakage_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Analog_leakage_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: Analog_leakage_aggregate";
+    //Close Data Table: Analog_leakage_aggregate
+    Close( Data Table( "Analog_leakage_aggregate" ), NoSave );
+
+    step_name = "Aggregate_BGA_continuity";
+    //Aggregate_BGA_continuity
+
+    step_name = "Open Data Table: BGA_continuity_aggregate.jmp";
+    //Open Data Table: BGA_continuity_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/BGA_continuity_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "BGA_continuity_aggregate" ) << Set Row ID Width( 104 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "BGA_continuity_aggregate" ) <<
+    Concatenate(
+    	Data Table( "BGA_Continuity" ),
+    	Output Table( "Concat of BGA_continuity_aggregate, BGA_Continuity" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: BGA_continuity_aggregate.jmp";
+    //Save data table: BGA_continuity_aggregate.jmp
+    Data Table( "BGA_continuity_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/BGA_continuity_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: BGA_continuity_aggregate";
+    //Close Data Table: BGA_continuity_aggregate
+    Close( Data Table( "BGA_continuity_aggregate" ), NoSave );
+
+    step_name = "Aggregate_TX_DRV_current";
+    //Aggregate_TX_DRV_current
+
+    step_name = "Open Data Table: TX_DRV_current_aggregate.jmp";
+    //Open Data Table: TX_DRV_current_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_DRV_current_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "TX_DRV_current_aggregate" ) << Set Row ID Width( 110 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "TX_DRV_current_aggregate" ) <<
+    Concatenate(
+    	Data Table( "TX_DRV_CURRENT" ),
+    	Output Table( "Concat of TX_DRV_current_aggregate, TX_DRV_CURRENT" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: TX_DRV_current_aggregate.jmp";
+    //Save data table: TX_DRV_current_aggregate.jmp
+    Data Table( "TX_DRV_current_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_DRV_current_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: TX_DRV_current_aggregate";
+    //Close Data Table: TX_DRV_current_aggregate
+    Close( Data Table( "TX_DRV_current_aggregate" ), NoSave );
+
+    step_name = "Aggregate_other_tests";
+    //Aggregate_other_tests
+
+    step_name = "Open Data Table: Other_tables_aggregate.jmp";
+    //Open Data Table: Other_tables_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Other_tables_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "Other_tables_aggregate" ) << Set Row ID Width( 104 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Other_tables_aggregate" ) << Concatenate(
+    	Data Table( "Source_table" ),
+    	Output Table( "Concat of Other_tables_aggregate, Source_table" ),
+    	Append to first table
+    );
+
+    step_name = "Save data table: Other_tables_aggregate.jmp";
+    //Save data table: Other_tables_aggregate.jmp
+    Data Table( "Other_tables_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Other_tables_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: Other_tables_aggregate";
+    //Close Data Table: Other_tables_aggregate
+    Close( Data Table( "Other_tables_aggregate" ), NoSave );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Aggregate_all_tests";
+    //Aggregate_all_tests
+
+    step_name = "Open Data Table: all_tests_aggregate.jmp";
+    //Open Data Table: all_tests_aggregate.jmp
+    Open(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/all_tests_aggregate.jmp"
+    );
+
+    step_name = "Change row ID area display width";
+    //Change row ID area display width
+    Data Table( "all_tests_aggregate" ) << Set Row ID Width( 110 );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "all_tests_aggregate" ) << Concatenate(
+    	Data Table( "Source_table" ),
+    	Data Table( "Harm_dist_dB" ),
+    	Data Table( "SNR_table_dB" ),
+    	Data Table( "TX_DRV_CURRENT" ),
+    	Data Table( "TX_LPF_dB" ),
+    	Data Table( "BGA_Continuity" ),
+    	Data Table( "Analog_leakage" ),
+    	Data Table( "Clock_test_table" ),
+    	Data Table( "Reg_test_table" ),
+    	Data Table( "VOx_table" ),
+    	Data Table( "Temp_sensor_table" ),
+    	Output Table(
+    		"Concat of all_tests_aggregate, Source_table, just_harm_dist, SNR_table_dB, TX_DRV_CURRENT, TX_LPF_dB, BGA_Continuity, Analog_leakage, Clock_test_table, Reg_test_table, VOx_table, Temp_sensor_table"
+    	),
+    	Append to first table
+    );
+
+    step_name = "Save data table: all_tests_aggregate.jmp";
+    //Save data table: all_tests_aggregate.jmp
+    Data Table( "all_tests_aggregate" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/all_tests_aggregate.jmp"
+    );
+
+    step_name = "Close Data Table: all_tests_aggregate";
+    //Close Data Table: all_tests_aggregate
+    Close( Data Table( "all_tests_aggregate" ), NoSave );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Wide_VOx";
+    //Wide_VOx
+
+    step_name = "New column: Column 17";
+    //New column: Column 17
+    Data Table( "VOx_table" ) << New Column( "Column 17",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 17}, after( :Pin_name ) );
+
+    step_name = "Change column formula: Column 17";
+    //Change column formula: Column 17
+    Data Table( "VOx_table" ):Column 17 << Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level || "_" || :Load
+    );
+
+    step_name = "Change column name: Column 17 → Full_trial_name";
+    //Change column name: Column 17 → Full_trial_name
+    Data Table( "VOx_table" ):Column 17 << Set Name( "Full_trial_name" );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "VOx_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "VOx_table" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "VOx_table" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "VOx_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Temp_sensor_table" ) << Clear Row States;
+
+    step_name = "Wide_Temp_sensor";
+    //Wide_Temp_sensor
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Temp_sensor_table" ) << Clear Row States;
+
+    step_name = "New column: Column 17";
+    //New column: Column 17
+    Data Table( "Temp_sensor_table" ) << New Column( "Column 17",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 17}, after( :Pin_name ) );
+
+    step_name = "Change column formula: Column 17";
+    //Change column formula: Column 17
+    Data Table( "Temp_sensor_table" ):Column 17 <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level
+    );
+
+    step_name = "Change column name: Column 17 → Full_trial_name";
+    //Change column name: Column 17 → Full_trial_name
+    Data Table( "Temp_sensor_table" ):Column 17 << Set Name( "Full_trial_name" );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Temp_sensor_table" ) << RunFormulas;
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "Temp_sensor_table" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "Temp_sensor_table" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "Temp_sensor_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Temp_sensor_table" ) << Clear Row States;
+
+    step_name = "Update data table";
+    //Update data table
+    Data Table( "Temp_sensor_split_out" ) << Update(
+    	With( Data Table( "VOx_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Rename data table: Temp_sensor_split_out → Update_table";
+    //Rename data table: Temp_sensor_split_out → Update_table
+    Data Table( "Temp_sensor_split_out" ) << Set Name( "Update_table" );
+
+    step_name = "Update data table";
+    //Update data table
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "VOx_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Wide_regulator";
+    //Wide_regulator
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Reg_test_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Reg_test_table" ) << Clear Row States;
+
+    step_name = "New column: Column 18";
+    //New column: Column 18
+    Data Table( "Reg_test_table" ) << New Column( "Column 18",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 18}, after( :Pin_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "Reg_test_table" ):Column 18 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "Reg_test_table" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level || "_" || :Load
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Reg_test_table" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "Reg_test_table" ):Full_trial_name << Set Display Width( 164 );
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "Reg_test_table" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "regulator_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "regulator_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clock_test_wide";
+    //Clock_test_wide
+
+    step_name = "New column: Column 17";
+    //New column: Column 17
+    Data Table( "Clock_test_table" ) << New Column( "Column 17",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 17}, after( :Test_name ) );
+
+    step_name = "Change column name: Column 17 → Full_trial_name";
+    //Change column name: Column 17 → Full_trial_name
+    Data Table( "Clock_test_table" ):Column 17 << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "Clock_test_table" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || Char( :Temperature ) || "C_" || :Vdd_level || "_" || :Freq
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Clock_test_table" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "Clock_test_table" ):Full_trial_name << Set Display Width( 164 );
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "Clock_test_table" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "Clock_test_table" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "Clock_test_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "Clock_test_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Clock_test_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Clock_test_table" ) << Clear Row States;
+
+    step_name = "Harm_dist_dB_wide";
+    //Harm_dist_dB_wide
+
+    step_name = "New column: Column 18";
+    //New column: Column 18
+    Data Table( "Harm_dist_dB" ) << New Column( "Column 18",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 18}, after( :Pin_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "Harm_dist_dB" ):Column 18 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" ) <<
+    Set Modeling Type( "None" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "Harm_dist_dB" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level || "_" || :COM_or_IND || "_" || :Harmonic
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Harm_dist_dB" ) << RunFormulas;
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "Harm_dist_dB" ):Full_trial_name << Delete Formula;
+
+    step_name = "Change column modeling type: Full_trial_name";
+    //Change column modeling type: Full_trial_name
+    Data Table( "Harm_dist_dB" ):Full_trial_name << Set Modeling Type( "Nominal" );
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "Harm_dist_dB" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "harm_dist_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "harm_dist_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Harm_dist_dB" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Harm_dist_dB" ) << Clear Row States;
+
+    step_name = "Analog_leakage_wide";
+    //Analog_leakage_wide
+
+    step_name = "New column: Column 18";
+    //New column: Column 18
+    Data Table( "Analog_leakage" ) << New Column( "Column 18",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 18}, after( :Pin_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "Analog_leakage" ):Column 18 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "Analog_leakage" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Analog_leakage" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "Analog_leakage" ):Full_trial_name << Set Display Width( 211 );
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "Analog_leakage" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "Analog_leakage" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "ana_leakage_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Analog_leakage" ) << Clear Row States;
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "ana_leakage_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Analog_leakage" ) << Clear Row States;
+
+    step_name = "SNR_dB_table_wide";
+    //SNR_dB_table_wide
+
+    step_name = "New column: Column 18";
+    //New column: Column 18
+    Data Table( "SNR_table_dB" ) << New Column( "Column 18",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 18}, after( :Pin_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "SNR_table_dB" ):Column 18 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "SNR_table_dB" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level || "_" || :COM_or_IND
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "SNR_table_dB" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "SNR_table_dB" ):Full_trial_name << Set Display Width( 240 );
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "SNR_table_dB" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "SNR_table_dB" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "SNR_dB_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "SNR_table_dB" ) << Clear Row States;
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "SNR_dB_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "SNR_table_dB" ) << Clear Row States;
+
+    step_name = "TX_DRV_Current_wide";
+    //TX_DRV_Current_wide
+
+    step_name = "Change column display width: Test_name";
+    //Change column display width: Test_name
+    Data Table( "TX_DRV_CURRENT" ):Test_name << Set Display Width( 202 );
+
+    step_name = "New column: Column 18";
+    //New column: Column 18
+    Data Table( "TX_DRV_CURRENT" ) << New Column( "Column 18",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 18}, after( :Pin_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "TX_DRV_CURRENT" ):Column 18 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "TX_DRV_CURRENT" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level || "_" || :Tx_drv_setting
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "TX_DRV_CURRENT" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "TX_DRV_CURRENT" ):Full_trial_name << Set Display Width( 227 );
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "TX_DRV_CURRENT" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "TX_DRV_CURRENT" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "TX_DRV_Current_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "TX_DRV_Current_split_out" ) << Clear Row States;
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "TX_DRV_Current_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "TX_DRV_CURRENT" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "TX_DRV_CURRENT" ) << Clear Row States;
+
+    step_name = "TX_LPF_wide";
+    //TX_LPF_wide
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "TX_LPF" ) << Clear Row States;
+
+    step_name = "New column: Column 18";
+    //New column: Column 18
+    Data Table( "TX_LPF" ) << New Column( "Column 18",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 18}, after( :Pin_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "TX_LPF" ):Column 18 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "TX_LPF" ):Full_trial_name << Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level || "_" || :Freq
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "TX_LPF" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "TX_LPF" ):Full_trial_name << Set Display Width( 175 );
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "TX_LPF" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "TX_LPF" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "TX_LPF_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "TX_LPF_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "TX_LPF" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "TX_LPF" ) << Clear Row States;
+
+    step_name = "TX_LPF_db_wide";
+    //TX_LPF_db_wide
+
+    step_name = "Change column display width: Test_name";
+    //Change column display width: Test_name
+    Data Table( "TX_LPF_dB" ):Test_name << Set Display Width( 256 );
+
+    step_name = "New column: Column 18";
+    //New column: Column 18
+    Data Table( "TX_LPF_dB" ) << New Column( "Column 18",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 18}, after( :Pin_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "TX_LPF_dB" ):Column 18 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "TX_LPF_dB" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "TX_LPF_dB" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "TX_LPF_dB" ):Full_trial_name << Set Display Width( 174 );
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "TX_LPF_dB" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "TX_LPF_dB" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "TX_LPF_dB_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "TX_LPF_dB_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "TX_LPF_dB" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "TX_LPF_dB" ) << Clear Row States;
+
+    step_name = "Source_table_rest_of_tests_wide";
+    //Source_table_rest_of_tests_wide
+
+    step_name = "New column: Column 18";
+    //New column: Column 18
+    Data Table( "Source_table" ) << New Column( "Column 18",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 18}, after( :Pin_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "Source_table" ):Column 18 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "Source_table" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "Source_table" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "Source_table" ):Full_trial_name << Set Display Width( 268 );
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "Source_table" ):Full_trial_name << Delete Formula;
+
+    step_name = "Split data table";
+    //Split data table
+    Data Table( "Source_table" ) << Split(
+    	Split By( :Full_trial_name ),
+    	Split( :result ),
+    	Output Table( "Source_table_split_out" ),
+    	Sort by Column Property
+    );
+
+    step_name = "Update data tables";
+    //Update data tables
+    Data Table( "Update_table" ) << Update(
+    	With( Data Table( "Source_table_split_out" ) ),
+    	Match Columns( :Unique_id = :Unique_id )
+    );
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Afterthought, add full_trial_name to the continuity table";
+    //Afterthought, add full_trial_name to the continuity table
+
+    step_name = "New column: Column 17";
+    //New column: Column 17
+    Data Table( "BGA_Continuity" ) << New Column( "Column 17",
+    	Numeric,
+    	"Continuous",
+    	Format( "Best", 12 ),
+    	Set Selected
+    ) << Move Selected Columns( {:Column 17}, after( :Test_name ) );
+
+    step_name = "Change column info: Full_trial_name";
+    //Change column info: Full_trial_name
+    Data Table( "BGA_Continuity" ):Column 17 << Data Type( Character ) <<
+    Set Modeling Type( "Nominal" ) << Set Name( "Full_trial_name" );
+
+    step_name = "Change column formula: Full_trial_name";
+    //Change column formula: Full_trial_name
+    Data Table( "BGA_Continuity" ):Full_trial_name <<
+    Set Formula(
+    	:Test_name || "_" || :Pin_name || "_" || Char( :Temperature ) || "C_" ||
+    	:Vdd_level
+    );
+
+    step_name = "Run Formulas";
+    //Run Formulas
+    Data Table( "BGA_Continuity" ) << RunFormulas;
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "BGA_Continuity" ):Full_trial_name << Set Display Width( 269 );
+
+    step_name = "Change column display width: Full_trial_name";
+    //Change column display width: Full_trial_name
+    Data Table( "BGA_Continuity" ):Full_trial_name << Set Display Width( 286 );
+
+    step_name = "Delete column formula: Full_trial_name";
+    //Delete column formula: Full_trial_name
+    Data Table( "BGA_Continuity" ):Full_trial_name << Delete Formula;
+
+    step_name = "Clear row states";
+    //Clear row states
+    Data Table( "Source_table" ) << Clear Row States;
+
+    step_name = "Close_the_wide_tables";
+    //Close_the_wide_tables
+
+    step_name = "Close Data Table: Source_table_split_out";
+    //Close Data Table: Source_table_split_out
+    Close( Data Table( "Source_table_split_out" ), NoSave );
+
+    step_name = "Close Data Table: SNR_dB_split_out";
+    //Close Data Table: SNR_dB_split_out
+    Close( Data Table( "SNR_dB_split_out" ), NoSave );
+
+    step_name = "Close Data Table: regulator_split_out";
+    //Close Data Table: regulator_split_out
+    Close( Data Table( "regulator_split_out" ), NoSave );
+
+    step_name = "Close Data Table: Clock_test_split_out";
+    //Close Data Table: Clock_test_split_out
+    Close( Data Table( "Clock_test_split_out" ), NoSave );
+
+    step_name = "Close Data Table: harm_dist_split_out";
+    //Close Data Table: harm_dist_split_out
+    Close( Data Table( "harm_dist_split_out" ), NoSave );
+
+    step_name = "Close Data Table: VOx_split_out";
+    //Close Data Table: VOx_split_out
+    Close( Data Table( "VOx_split_out" ), NoSave );
+
+    step_name = "Close Data Table: ana_leakage_split_out";
+    //Close Data Table: ana_leakage_split_out
+    Close( Data Table( "ana_leakage_split_out" ), NoSave );
+
+    step_name = "Close Data Table: TX_DRV_Current_split_out";
+    //Close Data Table: TX_DRV_Current_split_out
+    Close( Data Table( "TX_DRV_Current_split_out" ), NoSave );
+
+    step_name = "Close Data Table: TX_LPF_dB_split_out";
+    //Close Data Table: TX_LPF_dB_split_out
+    Close( Data Table( "TX_LPF_dB_split_out" ), NoSave );
+
+    step_name = "Close Data Table: TX_LPF_split_out";
+    //Close Data Table: TX_LPF_split_out
+    Close( Data Table( "TX_LPF_split_out" ), NoSave );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "Source_table" ) << Concatenate(
+    	Data Table( "Harm_dist_dB" ),
+    	Data Table( "SNR_table_dB" ),
+    	Data Table( "TX_DRV_CURRENT" ),
+    	Data Table( "TX_LPF" ),
+    	Data Table( "TX_LPF_dB" ),
+    	Data Table( "BGA_Continuity" ),
+    	Data Table( "Analog_leakage" ),
+    	Data Table( "Clock_test_table" ),
+    	Data Table( "Reg_test_table" ),
+    	Data Table( "VOx_table" ),
+    	Data Table( "Temp_sensor_table" ),
+    	Output Table( "concat_table" )
+    );
+
+    step_name = "Close_the_other_tables";
+    //Close_the_other_tables
+
+    step_name = "Close Data Table: Analog_leakage";
+    //Close Data Table: Analog_leakage
+    Close( Data Table( "Analog_leakage" ), NoSave );
+
+    step_name = "Close Data Table: TX_LPF_dB";
+    //Close Data Table: TX_LPF_dB
+    Close( Data Table( "TX_LPF_dB" ), NoSave );
+
+    step_name = "Close Data Table: BGA_Continuity";
+    //Close Data Table: BGA_Continuity
+    Close( Data Table( "BGA_Continuity" ), NoSave );
+
+    step_name = "Close Data Table: TX_DRV_CURRENT";
+    //Close Data Table: TX_DRV_CURRENT
+    Close( Data Table( "TX_DRV_CURRENT" ), NoSave );
+
+    step_name = "Close Data Table: SNR_table";
+    //Close Data Table: SNR_table
+    Close( Data Table( "SNR_table" ), NoSave );
+
+    step_name = "Close Data Table: SNR_table_dB";
+    //Close Data Table: SNR_table_dB
+    Close( Data Table( "SNR_table_dB" ), NoSave );
+
+    step_name = "Close Data Table: TX_LPF";
+    //Close Data Table: TX_LPF
+    Close( Data Table( "TX_LPF" ), NoSave );
+
+    step_name = "Close Data Table: Harm_dist_dB";
+    //Close Data Table: Harm_dist_dB
+    Close( Data Table( "Harm_dist_dB" ), NoSave );
+
+    step_name = "Close Data Table: Harm_dist_mag";
+    //Close Data Table: Harm_dist_mag
+    Close( Data Table( "Harm_dist_mag" ), NoSave );
+
+    step_name = "Close Data Table: Source_table";
+    //Close Data Table: Source_table
+    Close( Data Table( "Source_table" ), NoSave );
+
+    step_name = "Close Data Table: VOx_table";
+    //Close Data Table: VOx_table
+    Close( Data Table( "VOx_table" ), NoSave );
+
+    step_name = "Close Data Table: Temp_sensor_table";
+    //Close Data Table: Temp_sensor_table
+    Close( Data Table( "Temp_sensor_table" ), NoSave );
+
+    step_name = "Close Data Table: Reg_test_table";
+    //Close Data Table: Reg_test_table
+    Close( Data Table( "Reg_test_table" ), NoSave );
+
+    step_name = "Close Data Table: Clock_test_table";
+    //Close Data Table: Clock_test_table
+    Close( Data Table( "Clock_test_table" ), NoSave );
+
+    step_name = "Clean up actions";
+    //Clean up actions
+
+    step_name = "Recode column: Pin_name";
+    //Recode column: Pin_name
+    Local( {dt},
+    	dt = Data Table( "concat_table" );
+    	dt << Begin Data Update;
+    	dt << Recode Column(
+    		dt:Pin_name,
+    		{Map Value(
+    			_rcOrig,
+    			{"AVD1V8", "PS_AVD1V8", "AVDPWR", "PS_AVDPWR", "HVDD", "PS_HVDD",
+    			"I2C_SUPPLY", "PS_I2C_SUPPLY", "VDD1V1", "PS_VDD1V1", "VDD1V8",
+    			"PS_VDD1V8", "VDDA1V8", "PS_VDDA1V8", "VDEF25", "PS_VDEF25"},
+    			Unmatched( _rcNow )
+    		)},
+    		Update Properties( 1 ),
+    		Target Column( :Pin_name )
+    	);
+    	dt << End Data Update;
+    );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "Update_table" ) << Delete Columns(
+    	:stdf_record_index, :Record_type, :test_num, :text_dat, :Test_name, :Pin_name,
+    	:Vdd_level, :lo_limit, :hi_limit, :units, :Has_limits
+    );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "Update_table" ) << Delete Columns( :Load, :Freq );
+
+    step_name = "Delete column: Tx_drv_setting";
+    //Delete column: Tx_drv_setting
+    Data Table( "Update_table" ) << Delete Columns( :Tx_drv_setting );
+
+    step_name = "Delete columns";
+    //Delete columns
+    Data Table( "Update_table" ) << Delete Columns( :COM_or_IND, :Harmonic );
+
+    step_name = "Save files";
+    //Save files
+
+    step_name = "Save data table: Update_table.jmp";
+    //Save data table: Update_table.jmp
+    Data Table( "Update_table" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/processed_wide_files/Update_table.jmp"
+    );
+
+    step_name = "Close Data Table: Update_table";
+    //Close Data Table: Update_table
+    Close( Data Table( "Update_table" ), NoSave );
+
+    step_name = "Save data table: concat_table_processed.jmp";
+    //Save data table: concat_table_processed.jmp
+    Data Table( "concat_table" ) << Save(
+    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/processed_Full_files/concat_table_processed.jmp"
+    );
+
+    step_name = "Close Data Table: concat_table_processed";
+    //Close Data Table: concat_table_processed
+    Close( Data Table( "concat_table_processed" ), NoSave );
+
+    step_name = "Custom Action";
+    //Custom Action
+);
+
+

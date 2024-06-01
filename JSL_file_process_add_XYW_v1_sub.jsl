@@ -692,7 +692,7 @@ Show("This is called to operate on file name: ",this_file_name);
     
     Data Table( "concat_table" ) << Save(    	full_file_name    );
     this_name= Just_file_name_no_suffix || "_full";
-    Close( Data Table( this_name ), NoSave );
+    //Close( Data Table( this_name ), NoSave );				// don't close it, the next table will take it from here.
     
     
     
