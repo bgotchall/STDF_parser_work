@@ -3485,6 +3485,30 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
     Data Table( "Update_table" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/processed_wide_files/Update_table.jmp"
     );
+    /////////////////////////////////////////////////////////////////////////////////
+    //Concat these new lines to the cumulative file:
+    
+    step_name = "save to cumulative wide file";
+    //Open Data Table: SDR_cumulative.jmp
+    Open(
+    	"C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\May_2024_work\processed_wide_files/processed_wide_file_all.jmp"
+    );
+
+    step_name = "Concatenate tables";
+    //Concatenate tables
+    Data Table( "processed_wide_file_all" ) << Concatenate(
+    	Data Table( "Update_table" ),
+    	Output Table( "Concat out" ),
+    	Append to first table
+    );
+    
+    Data Table( "processed_wide_file_all" ) << Save(
+    	"C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\May_2024_work\processed_wide_files/processed_wide_file_all.jmp"
+    );
+    
+    Close( Data Table( "processed_wide_file_all" ), NoSave );
+    
+    //////////////////////////////////////////////////////////////////////////////
 
     step_name = "Close Data Table: Update_table";
     //Close Data Table: Update_table

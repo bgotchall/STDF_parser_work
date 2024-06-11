@@ -1948,11 +1948,18 @@ if(0,
     );
 
     step_name = "Concatenate tables";
+    // MPR might be absent (really all of them might be like this) so put in a try/catch:
     //Concatenate tables
-    Data Table( "MPR_cumulative" ) << Concatenate(
-    	Data Table( "MPR_table" ),
-    	Output Table( "Concat of MPR_cumulative, MPR_table" ),
-    	Append to first table
+    Try(
+		Data Table( "MPR_cumulative" ) << Concatenate(
+			Data Table( "MPR_table" ),
+			Output Table( "Concat of MPR_cumulative, MPR_table" ),
+			Append to first table
+		);
+		MPR_found=1;
+		,
+		Show("No MPR table made, but thats ok.");
+		MPR_found=0;
     );
 
     step_name = "Save data table: MPR_cumulative.jmp";
@@ -2171,7 +2178,11 @@ if(0,
 
     step_name = "Close Data Table: MPR_table";
     //Close Data Table: MPR_table
-    Close( Data Table( "MPR_table" ), NoSave );
+    if(MPR_found==1,
+		Close( Data Table( "MPR_table" ), NoSave );
+    ,
+		Show("No MPR to close");
+    );
 
     step_name = "Close Data Table: SDR_table";
     //Close Data Table: SDR_table
