@@ -5,7 +5,7 @@
 // To do:  Eventually it should also read the lot number but it's hard to inject that into the result field-- needs converted into a long decimal number.
 // To do:  Not all files start with the correct number of PIR records.  I see one file that was quad site, but the first run was 2 sites-- this messes things up.  
 //         so this code needs to be smarter and scan the whole file for PIR's not just the first 4.
-
+//
 
 
 Names Default To Here( 1 );
@@ -607,7 +607,8 @@ Show("This is called to operate on file name: ",this_file_name);
 			Selected columns only( 0 )
 		);
 		
-		
+	Show(0);
+	Wait(0.1);	
 	step_name = "Close the big table";
 	//Close the big table
 	Close( Data Table( "Source_table" ), NoSave );
@@ -617,32 +618,39 @@ Show("This is called to operate on file name: ",this_file_name);
 		Process_XYW("site_num=1");
 	,
 		New Table( "site_num=1" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
-		);
-
-	if ( site2_found==1,
-		Show ("do site 2");
-		Process_XYW("site_num=2");
-	,
-		New Table( "site_num=2" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
-		);
-		
-	if ( site3_found==1,
-		Show ("do site 3");
-		Process_XYW("site_num=3");
-	,
-		New Table( "site_num=3" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
-		);
-		
-	if ( site4_found==1,
-		Show ("do site 4");
-		Process_XYW("site_num=4");
-	,
-		New Table( "site_num=4" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
 	);
+	
+//this hardcoding is only for 1 site files:
+New Table( "site_num=2" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
+New Table( "site_num=3" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
+New Table( "site_num=4" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
+
+//The following line, for no clear reason, causes crashes randomly.  I have no fucking idea why.
+//	if ( site2_found==1,
+//		Show ("do site 2");
+//		Process_XYW("site_num=2");
+//	,
+//		New Table( "site_num=2" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
+//	);
+//		
+//	if ( site3_found==1,
+//		Show ("do site 3");
+//		Process_XYW("site_num=3");
+//	,
+//		New Table( "site_num=3" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
+//	);
+//		
+//	if ( site4_found==1,
+//		Show ("do site 4");
+//		Process_XYW("site_num=4");
+//	,
+//		New Table( "site_num=4" )				//it's easier to make a blank placeholder table than handle the concat with conditionals
+//	);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	Show(0);
+	Wait(0.1);	
     
 
     step_name = "Concatenate tables";
@@ -654,13 +662,18 @@ Show("This is called to operate on file name: ",this_file_name);
     	Output Table( "concat_table" )
     );
     
-    if (site1_found==1 & site2_found==1 & site3_found==1 & site4_found==1,
-		Show("4 sites");
-		Data Table( "concat_table" ) << Delete Columns( :site_num 2 );				//for some reason, this table gets generated for 4 sites.  check others.
-		,
-    	 Data Table( "concat_table" ) << Delete Columns(:column 1);				//a side effect of possible empty tables.  If ANY site was missing do this.
+    Show(0);
+	Wait(0.1);	
+    Try(
+		if (site1_found==1 & site2_found==1 & site3_found==1 & site4_found==1,
+			Show("4 sites");
+			Data Table( "concat_table" ) << Delete Columns( :site_num 2 );				//for some reason, this table gets generated for 4 sites.  check others.
+			,
+			 Data Table( "concat_table" ) << Delete Columns(:column 1);				//a side effect of possible empty tables.  If ANY site was missing do this.
+		);
+    ,
+		Show("no column to delete, but thats ok.");
     );
-    
    
 
     step_name = "Close Data Table: Subset_site1";

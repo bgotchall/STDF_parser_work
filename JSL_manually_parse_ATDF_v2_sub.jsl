@@ -1,10 +1,6 @@
 ﻿//   eventually add the //! to the first line to have it execute upon opening, and add a "close()" at the end.
 //////////////////////////////////////////////////////////////////////////////////////////////
 //  file.atdf  -> file_PTR_plus.jsl
-// This is from a partially written WF script, "WF_manually_parse_ATDF.WF" to see if converting to JSL
-// is practical.  because dealing with the damn references is a pain.
-// Note this works!  The key is to add wait(0) as needed to force it to finish what it was doing.
-// this script isn't complete, but it shows the rudiments of how it could work.  I should force it to do basic logging and file I/O to show this is viable
 //
 //This script is a new process, as of May 26 2024.  Using the output of the stdf2text command line, take this output of raw records 
 //and break everything up and clean up according to the STDF spec.  Very little/no cleanup is done here so it should be as input agnostic 
@@ -16,6 +12,7 @@
 //   is specific to my tester and part.  This generates a so-called "full" table that has all of the x,y,lot metadata added.  THOSE files can be further processed 
 //   with a "pin_process" script that makes a table that contains well formatted data for all non-digital tests that can be used for certain analsies directly
 // o Other records are appended onto cumulative tables like MIR, HBR, SBR etc.  Those records make the most sense as a kind of log for all lots.
+//
 
 Names Default To Here( 1 );
 
@@ -692,7 +689,7 @@ if(0,
     //Move selected columns
     Data Table( "join_out" ) << Move Selected Columns(
     	{:Lot_number, :Device, :Si_rev, :Tester_model, :Test_prog_rev, :File_name, :Date,
-    	:Process, :Temperature, :Probe_wafer, :Skew, :Lot_wafer, :Notes},
+    	:Process, :Temperature, :Probe_wafer, :Skew, :Lot_wafer, :Lot_type, :Notes},
     	after( :stdf_record_index )
     );
 
@@ -711,6 +708,7 @@ if(0,
     Data Table( "join_out" ):Probe_wafer << Set Header Background Color( "Light Green" );
     Data Table( "join_out" ):Skew << Set Header Background Color( "Light Green" );
     Data Table( "join_out" ):Lot_wafer << Set Header Background Color( "Light Green" );
+    Data Table( "join_out" ):Lot_type << Set Header Background Color( "Light Green" );
     Data Table( "join_out" ):Notes << Set Header Background Color( "Light Green" );;
 
     step_name = "Delete column: File_name";
@@ -719,7 +717,7 @@ if(0,
 
     step_name = "Delete column: Notes";
     //Delete column: Notes
-    Data Table( "join_out" ) << Delete Columns( :Notes );
+    //Data Table( "join_out" ) << Delete Columns( :Notes );
 
     step_name = "Close Data Table: Source_atdf";
     //Close Data Table: Source_atdf
@@ -745,7 +743,7 @@ if(0,
     Data Table( "Join of MIR_table with lot_list" ) <<
     Move Selected Columns(
     	{:Lot_number, :Device, :Si_rev, :Tester_model, :Test_prog_rev, :File_name, :Date,
-    	:Process, :Temperature, :Probe_wafer, :Skew, :Lot_wafer, :Notes},
+    	:Process, :Temperature, :Probe_wafer, :Skew, :Lot_wafer, :Lot_type, :Notes},
     	after( :Mod_time )
     );
 
@@ -755,7 +753,7 @@ if(0,
 
     step_name = "Delete column: Notes";
     //Delete column: Notes
-    Data Table( "Join of MIR_table with lot_list" ) << Delete Columns( :Notes );
+    //Data Table( "Join of MIR_table with lot_list" ) << Delete Columns( :Notes );
 
     step_name = "Move selected column: stdf_record_index";
     //Move selected column: stdf_record_index
@@ -764,28 +762,19 @@ if(0,
 
     step_name = "Set columns' header background colors";
     //Set columns' header background colors
-    Data Table( "Join of MIR_table with lot_list" ):Lot_number <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Device <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Si_rev <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Tester_model <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Test_prog_rev <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Date <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Process <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Temperature <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Probe_wafer <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Skew <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of MIR_table with lot_list" ):Lot_wafer <<
-    Set Header Background Color( "Light Green" );;
+    Data Table( "Join of MIR_table with lot_list" ):Lot_number <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Device <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Si_rev <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Tester_model <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Test_prog_rev <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Date <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Process <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Temperature <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Probe_wafer <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Skew <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Lot_type <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Notes <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of MIR_table with lot_list" ):Lot_wafer <<    Set Header Background Color( "Light Green" );;
 
     step_name = "Close Data Table: MIR_table";
     //Close Data Table: MIR_table
@@ -817,36 +806,24 @@ if(0,
 
     step_name = "Set columns' header background colors";
     //Set columns' header background colors
-    Data Table( "Join of ATR_table with lot_list" ):Lot_number <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Device <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Si_rev <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Tester_model <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Test_prog_rev <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):File_name <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Date <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Process <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Temperature <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Probe_wafer <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Skew <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Lot_wafer <<
-    Set Header Background Color( "Light Green" );
-    Data Table( "Join of ATR_table with lot_list" ):Notes <<
-    Set Header Background Color( "Light Green" );;
+    Data Table( "Join of ATR_table with lot_list" ):Lot_number <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Device <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Si_rev <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Tester_model <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Test_prog_rev <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):File_name <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Date <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Process <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Temperature <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Probe_wafer <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Skew <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Lot_type <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Lot_wafer <<    Set Header Background Color( "Light Green" );
+    Data Table( "Join of ATR_table with lot_list" ):Notes <<    Set Header Background Color( "Light Green" );;
 
     step_name = "Delete column: Notes";
     //Delete column: Notes
-    Data Table( "Join of ATR_table with lot_list" ) << Delete Columns( :Notes );
+    //Data Table( "Join of ATR_table with lot_list" ) << Delete Columns( :Notes );
 
     step_name = "Delete column: File_name";
     //Delete column: File_name
@@ -1865,7 +1842,34 @@ if(0,
     //Change column info: hi_spec
     Data Table( "PTR_table" ):hi_spec << Set Data Type( Numeric ) <<
     Set Modeling Type( "Continuous" ) << Set Field Width( 12 );
-
+    
+    
+    ///June 20:  new code to join the TSR data onto the PTR records
+    Data Table( "TSR_table" ) << Select Where( :head_num == "255" );
+    Data Table( "TSR_table" ) << Select Where( :head_num == "255" ) << Delete Rows;			//this is to kill the summary lines, I want to individual ones.  check this for multisite
+    Data Table( "TSR_table" ):test_num << Set Modeling Type( "Nominal" );
+    Data Table( "PTR_table" ):test_num << Set Data Type( Numeric ) << Set Field Width( 12 );
+    Data Table( "PTR_table" ) << Join(
+	With( Data Table( "TSR_table" ) ),
+	Select(
+		:DATA_FILE, :Record_date, :Mod_time, :stdf_record_index, :Lot_number,
+		:Device, :Si_rev, :Tester_model, :Test_prog_rev, :Date, :Process,
+		:Temperature, :Probe_wafer, :Skew, :Lot_wafer, :Record_type, :test_num,
+		:head_num, :site_num, :test_flg, :parm_flg, :result, :test_txt, :alarm_id,
+		:opt_flag, :res_scal, :llm_scal, :hlm_scal, :lo_limit, :hi_limit, :units,
+		:c_resfmt, :c_llmfmt, :c_hlmfmt, :lo_spec, :hi_spec, :Lot_type
+	),
+		SelectWith( :test_tim ),
+		By Matching Columns( :test_num = :test_num, :site_num = :site_num ),
+		Drop multiples( 0, 0 ),
+		Include Nonmatches( 1, 0 ),
+		Preserve main table order( 1 ),
+		Output Table( "Join of PTR_table with TSR_table" )
+	);
+	Close( Data Table( "PTR_table" ), NoSave );
+	Data Table( "Join of PTR_table with TSR_table" ) << Set Name( "PTR_table" );
+	/// end of June 20 edit.
+	
     step_name = "Add the small records to the cumulative tables";
     //Add the small records to the cumulative tables
 
@@ -1874,7 +1878,8 @@ if(0,
     Open(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/ATR_cumulative.jmp"
     );
-
+    
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     step_name = "Concatenate tables";
     //Concatenate tables
     Data Table( "ATR_cumulative" ) << Concatenate(
@@ -2114,7 +2119,7 @@ if(0,
     step_name = "Save data table: P6BB18-50D-RUN1_20240521133931_super.jmp";
     //Save data table: P6BB18-50D-RUN1_20240521133931_super.jmp
     Wait(0);
-    
+    Data Table( "superset_table" ) << Compress File When Saved( 1 );
     Data Table( "superset_table" ) << Save(  super_file_name   );
 //Close 
 	this_name= Just_file_name_no_suffix || "_super";
@@ -2150,7 +2155,7 @@ if(0,
     step_name = "Save data table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp";
     //Save data table: P6BB18-50D-RUN1_20240521133931_PTR_plus.jmp
     Wait(0);
-    
+    Data Table( "concat_out" ) << Compress File When Saved( 1 );
     Data Table( "concat_out" ) << Save(    	ptr_plus_file_name    );
     this_name= Just_file_name_no_suffix || "_PTR_plus";
     // For the sub, leave the PTR_plus_table open for further processing.

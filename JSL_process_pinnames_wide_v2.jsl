@@ -27,6 +27,12 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 	full_table_name= Just_file_name_no_suffix || "_full";
 	Show (full_table_name);
 	
+	processed_table_name=Just_file_name_no_suffix || "_processed";
+	Show (processed_table_name);
+	
+	full_processed_file_name =   output_files_path || "processed_Full_files\" ||   processed_table_name || ".jmp";
+	Show (full_processed_file_name);
+	
 	//full_file_name=  output_files_path || "Full_files\" ||   Just_file_name_no_suffix || "_full.jmp";
     //Show(full_file_name);
     //ptr_plus_file_name= output_files_path || "PTR_plus\" ||   Just_file_name_no_suffix  || "_PTR_plus.jmp";
@@ -211,7 +217,9 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Delete tests that mean nothing";
     //Delete tests that mean nothing
-
+    //////////////////////////////////////////////////////////////////////////////////////////
+ /// June 20 2024:  Stop doing this to measure accurate test times:
+if (0,
     step_name = "Delete tests that mean nothing";
     //Delete tests that mean nothing
     Data Table( "Source_table" ) << Clear Row States;
@@ -288,6 +296,9 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
     Data Table( "Source_table" ) << Select where( Contains( :Test_name, "MBIST" ) ) <<
     Delete Rows;
 
+,
+);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
     step_name = "Seperate out the min/max/nom  -\!"Vdd_range\!"";
     //Seperate out the min/max/nom  -"Vdd_range"
 
@@ -2106,6 +2117,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: SNR_table_dB_aggregate.jmp";
     //Save data table: SNR_table_dB_aggregate.jmp
+    Data Table( "SNR_table_dB_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "SNR_table_dB_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/SNR_table_dB_aggregate.jmp"
     );
@@ -2138,6 +2150,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: SNR_table_mag_aggregate.jmp";
     //Save data table: SNR_table_mag_aggregate.jmp
+    Data Table( "SNR_table_mag_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "SNR_table_mag_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/SNR_table_mag_aggregate.jmp"
     );
@@ -2177,6 +2190,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: Harm_dist_dB_aggregate.jmp";
     //Save data table: Harm_dist_dB_aggregate.jmp
+    Data Table( "Harm_dist_dB_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "Harm_dist_dB_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Harm_dist_dB_aggregate.jmp"
     );
@@ -2209,6 +2223,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: Harm_dist_mag_aggregate.jmp";
     //Save data table: Harm_dist_mag_aggregate.jmp
+    Data Table( "Harm_dist_mag_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "Harm_dist_mag_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Harm_dist_mag_aggregate.jmp"
     );
@@ -2248,6 +2263,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: TX_LPF_aggregate.jmp";
     //Save data table: TX_LPF_aggregate.jmp
+    Data Table( "TX_LPF_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "TX_LPF_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_LPF_aggregate.jmp"
     );
@@ -2279,6 +2295,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: TX_LPF_dB_aggregate.jmp";
     //Save data table: TX_LPF_dB_aggregate.jmp
+    Data Table( "TX_LPF_dB_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "TX_LPF_dB_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_LPF_dB_aggregate.jmp"
     );
@@ -2310,6 +2327,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: Temp_sensor_aggregate.jmp";
     //Save data table: Temp_sensor_aggregate.jmp
+    Data Table( "Temp_sensor_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "Temp_sensor_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Temp_sensor_aggregate.jmp"
     );
@@ -2341,6 +2359,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: VOx_aggregate.jmp";
     //Save data table: VOx_aggregate.jmp
+    Data Table( "VOx_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "VOx_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/VOx_aggregate.jmp"
     );
@@ -2372,6 +2391,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: Reg_test_aggregate.jmp";
     //Save data table: Reg_test_aggregate.jmp
+    Data Table( "Reg_test_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "Reg_test_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Reg_test_aggregate.jmp"
     );
@@ -2403,6 +2423,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: Clock_test_aggregate.jmp";
     //Save data table: Clock_test_aggregate.jmp
+    Data Table( "Clock_test_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "Clock_test_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Clock_test_aggregate.jmp"
     );
@@ -2435,6 +2456,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: Analog_leakage_aggregate.jmp";
     //Save data table: Analog_leakage_aggregate.jmp
+    Data Table( "Analog_leakage_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "Analog_leakage_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Analog_leakage_aggregate.jmp"
     );
@@ -2467,6 +2489,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: BGA_continuity_aggregate.jmp";
     //Save data table: BGA_continuity_aggregate.jmp
+    Data Table( "BGA_continuity_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "BGA_continuity_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/BGA_continuity_aggregate.jmp"
     );
@@ -2499,6 +2522,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: TX_DRV_current_aggregate.jmp";
     //Save data table: TX_DRV_current_aggregate.jmp
+    Data Table( "TX_DRV_current_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "TX_DRV_current_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/TX_DRV_current_aggregate.jmp"
     );
@@ -2530,6 +2554,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: Other_tables_aggregate.jmp";
     //Save data table: Other_tables_aggregate.jmp
+    Data Table( "Other_tables_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "Other_tables_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/Other_tables_aggregate.jmp"
     );
@@ -2565,6 +2590,10 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
     	Data Table( "Source_table" ),
     	Data Table( "Harm_dist_dB" ),
     	Data Table( "SNR_table_dB" ),
+			
+			Data Table( "Harm_dist_mag" ),							//this is a big dumb table I had been not keeping for space.  add it in for now.
+			Data Table( "SNR_table" ),								//this is a big dumb table I had been not keeping for space.  add it in for now.
+			
     	Data Table( "TX_DRV_CURRENT" ),
     	Data Table( "TX_LPF_dB" ),
     	Data Table( "BGA_Continuity" ),
@@ -2581,6 +2610,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: all_tests_aggregate.jmp";
     //Save data table: all_tests_aggregate.jmp
+    Data Table( "all_tests_aggregate" ) << Compress File When Saved( 1 );
     Data Table( "all_tests_aggregate" ) << Save(
     	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/aggregate_data_files/all_tests_aggregate.jmp"
     );
@@ -2603,6 +2633,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
 /////////////////////////////////////////////
 //This adding of the full trial name needs to be much earlier in the proces, such that all of the tall/stacked tables have it too.  
+// comment about the above comment:  it literally can't be done earlier, but the aggregate files need to be after this.
 	
     step_name = "New column: Column 17";
     //New column: Column 17
@@ -2632,6 +2663,7 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
     step_name = "Delete column formula: Full_trial_name";
     //Delete column formula: Full_trial_name
     Data Table( "VOx_table" ):Full_trial_name << Delete Formula;
+/////////////////////////////////////////////
 
     step_name = "Split data table";
     //Split data table
@@ -3369,6 +3401,8 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
     Data Table( "Source_table" ) << Concatenate(
     	Data Table( "Harm_dist_dB" ),
     	Data Table( "SNR_table_dB" ),
+		//	Data Table( "Harm_dist_mag" ),							//this is a big dumb table I had been not keeping for space.  add it in for now.
+		//	Data Table( "SNR_table" ),								//this is a big dumb table I had been not keeping for space.  add it in for now.
     	Data Table( "TX_DRV_CURRENT" ),
     	Data Table( "TX_LPF" ),
     	Data Table( "TX_LPF_dB" ),
@@ -3521,13 +3555,12 @@ WF_process_pinnames_production_general_wide_FT_no_QL=function({this_file_name},
 
     step_name = "Save data table: concat_table_processed.jmp";
     //Save data table: concat_table_processed.jmp
-    Data Table( "concat_table" ) << Save(
-    	"/C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/May_2024_work/processed_Full_files/concat_table_processed.jmp"
-    );
+    Data Table( "concat_table" ) << Compress File When Saved( 1 );
+    Data Table( "concat_table" ) << Save( full_processed_file_name  );
 
     step_name = "Close Data Table: concat_table_processed";
     //Close Data Table: concat_table_processed
-    Close( Data Table( "concat_table_processed" ), NoSave );
+    Close( Data Table( processed_table_name ), NoSave );
 
     step_name = "Custom Action";
     //Custom Action

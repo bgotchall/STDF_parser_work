@@ -77,7 +77,12 @@ if (0):             #this all works, but is limited.
         sys.stdout.close
 
 if(1):
-    file_list= glob.glob("../../FT_datalogs/stdf_to_process/*.stdf.gz")
+   # file_list= glob.glob("../../FT_datalogs/stdf_to_process/*.stdf.gz")
+   #I had some difficulty getting anything to run in July 2024.  I think it had to do with something Sharepoint was doing.  I think I needed to get the 
+   #directories "real" on my harddrive first?  Just started working.  was showing a pair of slashes before the filename-- might be the indication of that issue.
+    file_list= glob.glob("C:/Users/bob.g/SigmaSense.com/SigmaSense Intranet - Production_Data/FT_Datalogs/stdf_to_process/*.stdf.gz")
+    #file_list= glob.glob("C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet\\ -\\ Production_Data\FT_Datalogs\stdf_to_process\*.stdf.gz")
+    # C:\Users\bob.g\SigmaSense.com\SigmaSense Intranet - Production_Data\FT_Datalogs\stdf_to_process
 
     for  this_file in file_list:
         sys.stdout= orig_stdout
